@@ -4,6 +4,7 @@ CREATE TABLE rttm_trade_events (
     trade_id        VARCHAR(64) NOT NULL,
     service_name    VARCHAR(64) NOT NULL,
     event_type      VARCHAR(64) NOT NULL,
+    event_stage      VARCHAR(64) NOT NULL,   -- Stage of trade: enum RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
     event_status    VARCHAR(32) NOT NULL,
     source_queue    VARCHAR(128),
     target_queue    VARCHAR(128),
@@ -50,7 +51,8 @@ CREATE TABLE rttm_dlq_events (
     topic_name      VARCHAR(128) NOT NULL,
     original_topic  VARCHAR(128),
     reason          TEXT NOT NULL,
-    event_time      TIMESTAMP NOT NULL
+    event_time      TIMESTAMP NOT NULL,
+    event_stage     VARCHAR(32) NOT NULL
 );
 
 CREATE INDEX idx_dlq_time
@@ -114,4 +116,17 @@ CREATE TABLE rttm_alerts (
     triggered_time  TIMESTAMP NOT NULL,
     status          VARCHAR(16) NOT NULL
 );
+
+-- for Avg latency, P95 / P99 latency, Per-stage latency
+CREATE TABLE rttm_stage_latency (
+    id            BIGSERIAL PRIMARY KEY,
+    trade_id      VARCHAR(64) NOT NULL,
+    service_name  VARCHAR(64) NOT NULL,
+    stage_name    VARCHAR(32) NOT NULL,
+    latency_ms    BIGINT NOT NULL,
+    event_time    TIMESTAMP NOT NULL
+);
+
+CREATE INDEX idx_latency_time ON rttm_stage_latency (event_time);
+CREATE INDEX idx_latency_stage ON rttm_stage_latency (stage_name);
 
