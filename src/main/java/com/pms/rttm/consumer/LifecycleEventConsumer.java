@@ -1,0 +1,70 @@
+package com.pms.rttm.consumer;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pms.rttm.entity.RttmTradeEvent;
+import com.pms.rttm.model.LifecycleEvent;
+import com.pms.rttm.repository.RttmTradeEventRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class LifecycleEventConsumer {
+
+    private final RttmTradeEventRepository tradeEventRepository;
+    private final ObjectMapper objectMapper;
+
+    @KafkaListener(
+        topics = "lifecycle.event",
+        groupId = "pms-rttm-group",
+        containerFactory = "kafkaListenerContainerFactory"
+    )
+    @Transactional
+    public void consumeLifecycleEvents(
+            @Payload List<String> messages,
+            @Header(KafkaHeaders.RECEIVED_PARTITION) List<Integer> partitions,
+            @Header(KafkaHeaders.OFFSET) List<Long> offsets) {
+        
+        log.info("Processing {} lifecycle events", messages.size());
+        
+        for (int i = 0; i < messages.size(); i++) {
+            try {
+                LifecycleEvent event = objectMapper.readValue(messages.get(i), LifecycleEvent.class);
+                processLifecycleEvent(event, partitions.get(i), offsets.get(i));
+            } catch (Exception e) {
+                log.error("Failed to process lifecycle event: {}", messages.get(i), e);
+            }
+        }
+    }
+
+    private void processLifecycleEvent(LifecycleEvent event, Integer partition, Long offset) {
+        RttmTradeEvent tradeEvent = new RttmTradeEvent();
+        
+        tradeEvent.setTradeId(event.getTraceId());
+        tradeEvent.setServiceName(event.getServiceName() != null ? event.getServiceName() : "unknown");
+        tradeEvent.setEventType(event.getStage());
+        tradeEvent.setEventStatus(event.getStatus());
+        tradeEvent.setSourceQueue(event.getQueueName());
+        tradeEvent.setTopicName("lifecycle.event");
+        tradeEvent.setConsumerGroup("pms-rttm-group");
+        tradeEvent.setPartitionId(partition);
+        tradeEvent.setOffsetValue(offset);
+        tradeEvent.setEventTime(event.getTimestamp() != null ? event.getTimestamp() : LocalDateTime.now());
+        tradeEvent.setMessage(event.getDetails());
+        
+        tradeEventRepository.save(tradeEvent);
+        
+        log.debug("Saved trade event for traceId: {}, stage: {}, status: {}", 
+                 event.getTraceId(), event.getStage(), event.getStatus());
+    }
+}

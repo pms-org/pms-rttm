@@ -1,0 +1,15 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: pms-rttm-group-dev
+      auto-offset-reset: earliest
+
+schema:
+  registry:
+    url: http://localhost:8081
+
+logging:
+  level:
+    com.pms.rttm: DEBUG
+    org.springframework.kafka: DEBUG

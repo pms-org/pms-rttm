@@ -21,13 +21,16 @@ spring:
         format_sql: true    
         dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP}
-    # consumer:
-    #   group-id: validation-consumer-group
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    consumer:
+      group-id: pms-rttm-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      max-poll-records: 100
 
-# schema:
-#   registry:
-#     url: ${SCHEMA_REGISTRY_URL}
+schema:
+  registry:
+    url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
 
 server:
   port: 8080  
