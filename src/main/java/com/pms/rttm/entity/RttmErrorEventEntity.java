@@ -1,0 +1,40 @@
+package com.pms.rttm.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+
+@Entity
+@Table(name = "rttm_error_events", indexes = {
+        @Index(name = "idx_error_time", columnList = "event_time"),
+        @Index(name = "idx_error_service", columnList = "service_name")
+})
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class RttmErrorEventEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
+
+    @Column(name = "trade_id", length = 64)
+    private String tradeId;
+
+    @Column(name = "service_name", nullable = false, length = 64)
+    private String serviceName;
+
+    @Column(name = "error_type", nullable = false, length = 64)
+    private String errorType;
+
+    @Column(name = "error_message", nullable = false, columnDefinition = "TEXT")
+    private String errorMessage;
+
+    @Column(name = "event_time", nullable = false)
+    private Instant eventTime;
+}
