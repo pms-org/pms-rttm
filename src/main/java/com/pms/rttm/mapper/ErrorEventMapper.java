@@ -3,19 +3,19 @@ package com.pms.rttm.mapper;
 import com.pms.rttm.entity.RttmErrorEventEntity;
 import com.pms.rttm.proto.RttmErrorEvent;
 
-public final class ErrorEventMapper {
+import lombok.NoArgsConstructor;
 
-    private ErrorEventMapper() {
-    }
+@NoArgsConstructor
+public final class ErrorEventMapper {
 
     public static RttmErrorEventEntity toEntity(RttmErrorEvent proto) {
 
         return RttmErrorEventEntity.builder()
                 .tradeId(proto.getTradeId())
                 .serviceName(proto.getServiceName())
-                .errorType(proto.getErrorType().name())
+                .errorType(proto.getErrorType().toString())
                 .errorMessage(proto.getErrorMessage())
-                .eventTime(proto.getOccurredAt())
+                .eventTime(proto.getEventTime())
                 .build();
     }
 }

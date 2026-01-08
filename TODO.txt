@@ -1,0 +1,3 @@
+TODO: modify consumers to convert proto -> entity and send to ingestService
+TODO: Write entities, repos, ws handlers for `rttm_alert_thresholds`, `rttm_alerts`.
+TODO: Develop log parsing feature with `rttm_parsed_logs` schema

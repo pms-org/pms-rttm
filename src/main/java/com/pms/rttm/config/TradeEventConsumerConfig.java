@@ -22,9 +22,9 @@ public class TradeEventConsumerConfig extends KafkaConsumerConfig {
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    public ConcurrentKafkaListenerContainerFactory<String, RttmTradeEvent.RttmEvent> tradeEventKafkaListenerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, RttmTradeEvent> tradeEventKafkaListenerFactory() {
 
-        ConcurrentKafkaListenerContainerFactory<String, RttmTradeEvent.RttmEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        ConcurrentKafkaListenerContainerFactory<String, RttmTradeEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(tradeEventConsumerFactory());
         factory.setConcurrency(3);

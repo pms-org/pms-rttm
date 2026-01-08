@@ -5,12 +5,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import com.pms.rttm.config.WebSocketConfig;
-import com.pms.rttm.websocket.StatsWebSocketHandler;
-import com.pms.rttm.websocket.LagWebSocketHandler;
-import com.pms.rttm.websocket.DlqWebSocketHandler;
-import com.pms.rttm.websocket.AlertsWebSocketHandler;
-import com.pms.rttm.websocket.MetricsWebSocketHandler;
-import com.pms.rttm.websocket.TrendWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -18,20 +12,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    private final StatsWebSocketHandler statsHandler;
-    private final LagWebSocketHandler lagHandler;
-    private final DlqWebSocketHandler dlqHandler;
-    private final AlertsWebSocketHandler alertsHandler;
-    private final MetricsWebSocketHandler metricsHandler;
-    private final TrendWebSocketHandler trendHandler;
+    // private final StatsWebSocketHandler statsHandler;
+    // private final LagWebSocketHandler lagHandler;
+    // private final DlqWebSocketHandler dlqHandler;
+    // private final AlertsWebSocketHandler alertsHandler;
+    // private final MetricsWebSocketHandler metricsHandler;
+    // private final TrendWebSocketHandler trendHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(statsHandler, "/ws/stats").setAllowedOrigins("*");
-        registry.addHandler(lagHandler, "/ws/lag").setAllowedOrigins("*");
-        registry.addHandler(dlqHandler, "/ws/dlq").setAllowedOrigins("*");
-        registry.addHandler(alertsHandler, "/ws/alerts").setAllowedOrigins("*");
-        registry.addHandler(metricsHandler, "/ws/metrics").setAllowedOrigins("*");
-        registry.addHandler(trendHandler, "/ws/trend").setAllowedOrigins("*");
+        // registry.addHandler(statsHandler, "/ws/stats").setAllowedOrigins("*");
+        // registry.addHandler(lagHandler, "/ws/lag").setAllowedOrigins("*");
+        // registry.addHandler(dlqHandler, "/ws/dlq").setAllowedOrigins("*");
+        // registry.addHandler(alertsHandler, "/ws/alerts").setAllowedOrigins("*");
+        // registry.addHandler(metricsHandler, "/ws/metrics").setAllowedOrigins("*");
+        // registry.addHandler(trendHandler, "/ws/trend").setAllowedOrigins("*");
     }
 }

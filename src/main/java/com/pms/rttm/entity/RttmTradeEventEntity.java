@@ -5,14 +5,16 @@ import lombok.*;
 
 import java.time.Instant;
 
+import com.pms.rttm.enums.EventStage;
+import com.pms.rttm.enums.EventType;
+
 @Entity
 @Table(name = "rttm_trade_events", indexes = {
         @Index(name = "idx_trade_events_time", columnList = "event_time"),
         @Index(name = "idx_trade_events_trade", columnList = "trade_id"),
         @Index(name = "idx_trade_events_service_time", columnList = "service_name,event_time")
 })
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,11 +32,13 @@ public class RttmTradeEventEntity {
     @Column(name = "service_name", nullable = false, length = 64)
     private String serviceName;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false, length = 64)
-    private String eventType;
+    private EventType eventType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_stage", nullable = false, length = 64)
-    private String eventStage;
+    private EventStage eventStage;
 
     @Column(name = "event_status", nullable = false, length = 32)
     private String eventStatus;
