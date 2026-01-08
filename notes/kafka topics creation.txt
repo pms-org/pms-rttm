@@ -1,3 +1,4 @@
+follow compose file's
 kafka-topics.sh --bootstrap-server localhost:9092 \
   --create --topic rttm.trade.events \
   --partitions 6 --replication-factor 1
