@@ -1,6 +1,10 @@
 package com.pms.rttm.consumer;
 
-import com.pms.rttm.service.DlqEventIngestService;
+import com.pms.rttm.service.RttmIngestService;
+import com.pms.rttm.entity.RttmDlqEventEntity;
+import com.pms.rttm.entity.RttmTradeEventEntity;
+import com.pms.rttm.mapper.DlqEventMapper;
+import com.pms.rttm.mapper.TradeEventMapper;
 import com.pms.rttm.proto.RttmDlqEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +17,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DlqEventConsumer {
 
-    private final DlqEventIngestService ingestService;
+    private final RttmIngestService ingestService;
 
     @KafkaListener(topics = "rttm.dlq.events", containerFactory = "dlqListenerFactory")
     public void consume(RttmDlqEvent event, Acknowledgment ack) {
 
         try {
-            ingestService.ingest(event);
+            RttmDlqEventEntity eventEntity = DlqEventMapper.toEntity(event);
+            ingestService.ingest(eventEntity);
             ack.acknowledge();
         } catch (Exception ex) {
             log.error("Failed to ingest RTTM DLQ event: {}", event, ex);

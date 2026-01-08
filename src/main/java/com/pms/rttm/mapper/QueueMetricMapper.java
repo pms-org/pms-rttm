@@ -1,5 +1,7 @@
 package com.pms.rttm.mapper;
 
+import java.time.Instant;
+
 import com.pms.rttm.entity.RttmQueueMetricEntity;
 import com.pms.rttm.proto.RttmQueueMetric;
 
@@ -17,7 +19,7 @@ public final class QueueMetricMapper {
                 .producedOffset(proto.getProducedOffset())
                 .consumedOffset(proto.getConsumedOffset())
                 .consumerGroup(proto.getConsumerGroup())
-                .snapshotTime(proto.getSnapshotTime())
+                .snapshotTime(Instant.ofEpochMilli(proto.getSnapshotTime()))
                 .build();
     }
 }

@@ -1,5 +1,7 @@
 package com.pms.rttm.mapper;
 
+import java.time.Instant;
+
 import com.pms.rttm.entity.RttmErrorEventEntity;
 import com.pms.rttm.proto.RttmErrorEvent;
 
@@ -15,7 +17,7 @@ public final class ErrorEventMapper {
                 .serviceName(proto.getServiceName())
                 .errorType(proto.getErrorType().toString())
                 .errorMessage(proto.getErrorMessage())
-                .eventTime(proto.getEventTime())
+                .eventTime(Instant.ofEpochMilli(proto.getEventTime()))
                 .build();
     }
 }

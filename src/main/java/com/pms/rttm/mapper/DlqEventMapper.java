@@ -1,5 +1,7 @@
 package com.pms.rttm.mapper;
 
+import java.time.Instant;
+
 import com.pms.rttm.entity.RttmDlqEventEntity;
 import com.pms.rttm.proto.RttmDlqEvent;
 
@@ -17,7 +19,7 @@ public final class DlqEventMapper {
                 .originalTopic(proto.getOriginalTopic())
                 .reason(proto.getReason())
                 .eventStage(proto.getEventStage().toString())
-                .eventTime(proto.getEventTime())
+                .eventTime(Instant.ofEpochMilli(proto.getEventTime()))
                 .build();
     }
 }
