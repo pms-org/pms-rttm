@@ -23,13 +23,19 @@ public class TpsMetricsService {
     }
 
     public long currentTps() {
-        return tradeRepo.countByCreatedAtAfter(
+        return tradeRepo.countByEventTimeAfter(
                 Instant.now().minusSeconds(1));
     }
 
     public List<TpsBucket> tpsTrend(Duration window, String bucket) {
-        return tradeRepo.tpsBucketed(
-                Instant.now().minus(window),
-                bucket);
+        Instant from = Instant.now().minus(window);
+
+        return switch (bucket.toLowerCase()) {
+            case "second" -> tradeRepo.tpsPerSecond(from);
+            case "minute" -> tradeRepo.tpsPerMinute(from);
+            case "hour" -> tradeRepo.tpsPerHour(from);
+            default -> throw new IllegalArgumentException(
+                    "Unsupported bucket: " + bucket);
+        };
     }
 }

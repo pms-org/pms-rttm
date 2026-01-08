@@ -24,7 +24,7 @@ public interface RttmTradeEventRepository extends JpaRepository<RttmTradeEventEn
     @Query("SELECT COUNT(r) FROM RttmTradeEventEntity r WHERE r.eventStatus = 'FAILED' AND r.eventTime >= :since")
     Long countFailedEventsSince(@Param("since") LocalDateTime since);
 
-    long countByCreatedAtAfter(Instant time);
+    long countByEventTimeAfter(Instant time);
 
     @Query("""
                 SELECT COUNT(e)
@@ -33,20 +33,47 @@ public interface RttmTradeEventRepository extends JpaRepository<RttmTradeEventEn
             """)
     long countByStage(@Param("stage") EventStage stage);
 
-    // TPS trend
+    // ================= TPS PER SECOND =================
+
     @Query("""
-                SELECT new com.pms.rttm.service.dto.TpsBucket(
-                    FUNCTION('date_trunc', :bucket, e.createdAt),
+                SELECT new com.pms.rttm.dto.TpsBucket(
+                    FUNCTION('date_trunc', 'second', e.eventTime),
                     COUNT(e)
                 )
                 FROM RttmTradeEventEntity e
-                WHERE e.createdAt >= :from
-                GROUP BY FUNCTION('date_trunc', :bucket, e.createdAt)
-                ORDER BY FUNCTION('date_trunc', :bucket, e.createdAt)
+                WHERE e.eventTime >= :from
+                GROUP BY FUNCTION('date_trunc', 'second', e.eventTime)
+                ORDER BY FUNCTION('date_trunc', 'second', e.eventTime)
             """)
-    List<TpsBucket> tpsBucketed(
-            @Param("from") Instant from,
-            @Param("bucket") String bucket);
+    List<TpsBucket> tpsPerSecond(@Param("from") Instant from);
+
+    // ================= TPS PER MINUTE =================
+
+    @Query("""
+                SELECT new com.pms.rttm.dto.TpsBucket(
+                    FUNCTION('date_trunc', 'minute', e.eventTime),
+                    COUNT(e)
+                )
+                FROM RttmTradeEventEntity e
+                WHERE e.eventTime >= :from
+                GROUP BY FUNCTION('date_trunc', 'minute', e.eventTime)
+                ORDER BY FUNCTION('date_trunc', 'minute', e.eventTime)
+            """)
+    List<TpsBucket> tpsPerMinute(@Param("from") Instant from);
+
+    // ================= TPS PER HOUR =================
+
+    @Query("""
+                SELECT new com.pms.rttm.dto.TpsBucket(
+                    FUNCTION('date_trunc', 'hour', e.eventTime),
+                    COUNT(e)
+                )
+                FROM RttmTradeEventEntity e
+                WHERE e.eventTime >= :from
+                GROUP BY FUNCTION('date_trunc', 'hour', e.eventTime)
+                ORDER BY FUNCTION('date_trunc', 'hour', e.eventTime)
+            """)
+    List<TpsBucket> tpsPerHour(@Param("from") Instant from);
 
     @Query(value = """
                 SELECT COALESCE(MAX(tps), 0)

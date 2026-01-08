@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.Instant;
 
+import com.pms.rttm.enums.EventStage;
+
 @Entity
 @Table(name = "rttm_error_events", indexes = {
         @Index(name = "idx_error_time", columnList = "event_time"),
@@ -34,6 +36,10 @@ public class RttmErrorEventEntity {
 
     @Column(name = "error_message", nullable = false, columnDefinition = "TEXT")
     private String errorMessage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "event_stage", nullable = false, length = 32)
+    private EventStage eventStage;
 
     @Column(name = "event_time", nullable = false)
     private Instant eventTime;

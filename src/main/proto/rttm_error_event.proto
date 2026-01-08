@@ -13,5 +13,7 @@ message RttmErrorEvent {
   string error_type = 3;     // TECHNICAL / BUSINESS / TIMEOUT / DESERIALIZATION
   string error_message = 4;
 
-  int64 event_time = 5;      // epoch millis
+  string event_stage = 5;
+
+  int64 event_time = 6;      // epoch millis
 }

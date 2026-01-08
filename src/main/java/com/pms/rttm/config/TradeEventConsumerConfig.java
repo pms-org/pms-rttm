@@ -22,7 +22,8 @@ public class TradeEventConsumerConfig extends KafkaConsumerConfig {
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    public ConcurrentKafkaListenerContainerFactory<String, RttmTradeEvent> tradeEventKafkaListenerFactory() {
+    @Bean(name = "tradeEventListenerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, RttmTradeEvent> tradeEventListenerFactory() {
 
         ConcurrentKafkaListenerContainerFactory<String, RttmTradeEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
