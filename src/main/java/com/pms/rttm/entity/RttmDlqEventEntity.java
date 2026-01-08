@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.Instant;
 
+import com.pms.rttm.enums.EventStage;
+
 @Entity
 @Table(name = "rttm_dlq_events", indexes = {
         @Index(name = "idx_dlq_time", columnList = "event_time"),
@@ -42,5 +44,5 @@ public class RttmDlqEventEntity {
     private Instant eventTime;
 
     @Column(name = "event_stage", nullable = false, length = 32)
-    private String eventStage;
+    private EventStage eventStage;
 }

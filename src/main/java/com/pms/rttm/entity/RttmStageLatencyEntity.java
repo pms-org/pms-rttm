@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.Instant;
 
+import com.pms.rttm.enums.StageName;
+
 @Entity
 @Table(name = "rttm_stage_latency", indexes = {
         @Index(name = "idx_latency_time", columnList = "event_time"),
@@ -30,7 +32,7 @@ public class RttmStageLatencyEntity {
     private String serviceName;
 
     @Column(name = "stage_name", nullable = false, length = 32)
-    private String stageName;
+    private StageName stageName;
 
     @Column(name = "latency_ms", nullable = false)
     private Long latencyMs;

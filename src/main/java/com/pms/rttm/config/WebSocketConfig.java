@@ -12,20 +12,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    // private final StatsWebSocketHandler statsHandler;
-    // private final LagWebSocketHandler lagHandler;
-    // private final DlqWebSocketHandler dlqHandler;
-    // private final AlertsWebSocketHandler alertsHandler;
-    // private final MetricsWebSocketHandler metricsHandler;
-    // private final TrendWebSocketHandler trendHandler;
+    private final MetricsWsHandler metricsWsHandler;
+    private final PipelineWsHandler pipelineWsHandler;
+    private final AlertsWsHandler alertsWsHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        // registry.addHandler(statsHandler, "/ws/stats").setAllowedOrigins("*");
-        // registry.addHandler(lagHandler, "/ws/lag").setAllowedOrigins("*");
-        // registry.addHandler(dlqHandler, "/ws/dlq").setAllowedOrigins("*");
-        // registry.addHandler(alertsHandler, "/ws/alerts").setAllowedOrigins("*");
-        // registry.addHandler(metricsHandler, "/ws/metrics").setAllowedOrigins("*");
-        // registry.addHandler(trendHandler, "/ws/trend").setAllowedOrigins("*");
+        registry.addHandler(metricsWsHandler, "/ws/rttm/metrics")
+                .setAllowedOrigins("*");
+
+        registry.addHandler(pipelineWsHandler, "/ws/rttm/pipeline")
+                .setAllowedOrigins("*");
+
+        registry.addHandler(alertsWsHandler, "/ws/rttm/alerts")
+                .setAllowedOrigins("*");
     }
 }
