@@ -1,6 +1,6 @@
 package com.pms.rttm.controller;
 
-import com.pms.rttm.dto.StageStats;
+import com.pms.rttm.old_dto.StageStats;
 import com.pms.rttm.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
