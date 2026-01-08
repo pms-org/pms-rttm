@@ -1,0 +1,18 @@
+kafka-topics.sh --bootstrap-server localhost:9092 \
+  --create --topic rttm.trade.events \
+  --partitions 6 --replication-factor 1
+
+kafka-topics.sh --bootstrap-server localhost:9092 \
+  --create --topic rttm.queue.metrics \
+  --partitions 3 --replication-factor 1
+
+kafka-topics.sh --bootstrap-server localhost:9092 \
+  --create --topic rttm.error.events \
+  --partitions 3 --replication-factor 1
+
+kafka-topics.sh --bootstrap-server localhost:9092 \
+  --create --topic rttm.dlq.events \
+  --partitions 3 --replication-factor 1
+
+
+kafka-topics.sh --bootstrap-server localhost:9092 --describe --topic rttm.trade.events
