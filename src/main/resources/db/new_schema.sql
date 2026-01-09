@@ -83,6 +83,7 @@ CREATE TABLE rttm_error_events (
     service_name    VARCHAR(64) NOT NULL,        -- Service where error occurred
     error_type      VARCHAR(64) NOT NULL,        -- TECHNICAL / BUSINESS / TIMEOUT / DESERIALIZATION
     error_message   TEXT NOT NULL,               -- Full error description
+    event_stage     VARCHAR(64) NOT NULL,
     event_time      TIMESTAMP NOT NULL           -- Time of error occurrence
 );
 
