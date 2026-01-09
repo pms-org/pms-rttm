@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import com.pms.rttm.enums.StageName;
 
@@ -25,8 +26,8 @@ public class RttmStageLatencyEntity {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(name = "trade_id", nullable = false, length = 64)
-    private String tradeId;
+    @Column(name = "trade_id", nullable = false)
+    private UUID tradeId;
 
     @Column(name = "service_name", nullable = false, length = 64)
     private String serviceName;
