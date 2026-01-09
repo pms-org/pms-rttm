@@ -1,8 +1,10 @@
 package com.pms.rttm.mapper;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import com.pms.rttm.entity.RttmDlqEventEntity;
+import com.pms.rttm.enums.EventStage;
 import com.pms.rttm.proto.RttmDlqEvent;
 
 import lombok.NoArgsConstructor;
@@ -13,12 +15,12 @@ public final class DlqEventMapper {
     public static RttmDlqEventEntity toEntity(RttmDlqEvent proto) {
 
         return RttmDlqEventEntity.builder()
-                .tradeId(proto.getTradeId())
+                .tradeId(UUID.fromString(proto.getTradeId()))
                 .serviceName(proto.getServiceName())
                 .topicName(proto.getTopicName())
                 .originalTopic(proto.getOriginalTopic())
                 .reason(proto.getReason())
-                .eventStage(proto.getEventStage().toString())
+                .eventStage(EventStage.valueOf(proto.getEventStage()))
                 .eventTime(Instant.ofEpochMilli(proto.getEventTime()))
                 .build();
     }

@@ -1,6 +1,7 @@
 package com.pms.rttm.mapper;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import com.pms.rttm.entity.RttmErrorEventEntity;
 import com.pms.rttm.enums.EventStage;
@@ -14,7 +15,7 @@ public final class ErrorEventMapper {
     public static RttmErrorEventEntity toEntity(RttmErrorEvent proto) {
 
         return RttmErrorEventEntity.builder()
-                .tradeId(proto.getTradeId())
+                .tradeId(UUID.fromString(proto.getTradeId()))
                 .serviceName(proto.getServiceName())
                 .errorType(proto.getErrorType().toString())
                 .errorMessage(proto.getErrorMessage())

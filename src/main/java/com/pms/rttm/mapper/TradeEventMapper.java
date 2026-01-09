@@ -1,6 +1,7 @@
 package com.pms.rttm.mapper;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import com.pms.rttm.entity.RttmTradeEventEntity;
 import com.pms.rttm.enums.EventStage;
@@ -15,7 +16,7 @@ public final class TradeEventMapper {
     public static RttmTradeEventEntity toEntity(RttmTradeEvent proto) {
 
         return RttmTradeEventEntity.builder()
-                .tradeId(proto.getTradeId())
+                .tradeId(UUID.fromString(proto.getTradeId()))
                 .serviceName(proto.getServiceName())
                 .eventType(EventType.valueOf(proto.getEventType()))
                 .eventStage(EventStage.valueOf(proto.getEventStage()))

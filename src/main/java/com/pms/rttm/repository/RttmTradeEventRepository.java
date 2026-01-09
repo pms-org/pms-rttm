@@ -12,11 +12,12 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface RttmTradeEventRepository extends JpaRepository<RttmTradeEventEntity, Long> {
 
-    List<RttmTradeEventEntity> findByTradeIdOrderByEventTimeDesc(String tradeId);
+    List<RttmTradeEventEntity> findByTradeIdOrderByEventTimeDesc(UUID tradeId);
 
     List<RttmTradeEventEntity> findByServiceNameAndEventTimeBetween(
             String serviceName, LocalDateTime start, LocalDateTime end);
