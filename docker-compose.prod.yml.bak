@@ -1,80 +1,26 @@
 services:
   kafka:
     image: confluentinc/cp-kafka:7.6.0
-    container_name: kafka
     hostname: kafka
-
+    container_name: kafka
     ports:
       - "9092:9092"
       - "29092:29092"
       - "29093:29093"
-
-    volumes:
-      - kafka-data:/var/lib/kafka/data
-
     environment:
-      # ---- KRaft ----
       KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
-
-      # ---- Listeners ----
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >
-        PLAINTEXT:PLAINTEXT,
-        PLAINTEXT_HOST:PLAINTEXT,
-        CONTROLLER:PLAINTEXT
-
-      KAFKA_LISTENERS: >
-        PLAINTEXT_HOST://0.0.0.0:9092,
-        PLAINTEXT://kafka:29092,
-        CONTROLLER://kafka:29093
-
-      KAFKA_ADVERTISED_LISTENERS: >
-        PLAINTEXT_HOST://localhost:9092,
-        PLAINTEXT://kafka:29092
-
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_LISTENERS: "PLAINTEXT_HOST://0.0.0.0:9092,PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT_HOST://localhost:9092,PLAINTEXT://kafka:29092"
       KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
-
-      # ---- Storage ----
-      KAFKA_LOG_DIRS: "/var/lib/kafka/data"
-
-      # ---- RTTM safety ----
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-
-      # ---- Single node ----
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-
       CLUSTER_ID: "C-1Pn8WSTOamp-3aPkhjGQ"
 
-    command: >
-      bash -c "
-        /etc/confluent/docker/run &
-
-        echo 'Waiting for Kafka broker...';
-        until kafka-broker-api-versions --bootstrap-server kafka:29092 > /dev/null 2>&1; do
-          sleep 2;
-        done;
-
-        echo 'Creating RTTM topics...';
-
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.trade.events --partitions 48 --replication-factor 1;
-
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.queue.metrics --partitions 12 --replication-factor 1;
-
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.error.events --partitions 24 --replication-factor 1;
-
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.dlq.events --partitions 12 --replication-factor 1;
-
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.service.heartbeat --partitions 6 --replication-factor 1;
-
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.alert.events --partitions 6 --replication-factor 1;
-
-        echo 'Kafka ready.';
-        wait
-      "
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.0
@@ -105,6 +51,17 @@ services:
       CONTROL_CENTER_REPLICATION_FACTOR: 1
       PORT: 9021
 
+  rttm-service:
+    image: sureshvasantha/rttm-service:latest 
+    container_name: rttm-service
+    env_file:
+      - .env
+    ports:
+      - "8085:8080"
+    depends_on:
+      - kafka
+      - schema-registry
+  
   redis:
     image: "redislabs/redismod"
     hostname: redis
@@ -131,17 +88,3 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
-
-  rttm-service:
-    image: sureshvasantha/rttm-service:latest 
-    container_name: rttm-service
-    env_file:
-      - .env
-    ports:
-      - "8085:8080"
-    depends_on:
-      - kafka
-      - schema-registry
-
-volumes:
-  kafka-data:
