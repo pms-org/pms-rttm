@@ -32,6 +32,7 @@ public class RttmStageLatencyEntity {
     @Column(name = "service_name", nullable = false, length = 64)
     private String serviceName;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "stage_name", nullable = false, length = 32)
     private StageName stageName;
 

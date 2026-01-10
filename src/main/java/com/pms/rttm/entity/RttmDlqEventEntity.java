@@ -44,6 +44,7 @@ public class RttmDlqEventEntity {
     @Column(name = "event_time", nullable = false)
     private Instant eventTime;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_stage", nullable = false, length = 32)
     private EventStage eventStage;
 }
