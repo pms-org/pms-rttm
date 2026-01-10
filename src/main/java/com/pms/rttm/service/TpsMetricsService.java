@@ -2,6 +2,7 @@ package com.pms.rttm.service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +24,12 @@ public class TpsMetricsService {
     }
 
     public long currentTps() {
+        // TODO: change time interval back to 5 sec
+
         return tradeRepo.countByEventTimeAfter(
-                Instant.now().minusSeconds(1));
+                // Instant.now().minusSeconds(1)
+                Instant.parse("2026-01-09T00:00:00Z") // from jan 9 data
+        );
     }
 
     public List<TpsBucket> tpsTrend(Duration window, String bucket) {
