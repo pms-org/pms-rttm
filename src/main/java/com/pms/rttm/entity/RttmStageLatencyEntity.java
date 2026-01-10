@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.pms.rttm.enums.StageName;
+import com.pms.rttm.enums.EventStage;
 
 @Entity
 @Table(name = "rttm_stage_latency", indexes = {
@@ -34,7 +34,7 @@ public class RttmStageLatencyEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "stage_name", nullable = false, length = 32)
-    private StageName stageName;
+    private EventStage stageName;
 
     @Column(name = "latency_ms", nullable = false)
     private Long latencyMs;
