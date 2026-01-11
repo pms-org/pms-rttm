@@ -23,14 +23,14 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP}
     consumer:
-      group-id: pms-rttm-group
+      group-id: ${KAFKA_CONSUMER_GROUP_ID}
 
 schema:
   registry:
     url: ${SCHEMA_REGISTRY_URL}
 
 server:
-  port: 8080  
+  port: ${SERVER_PORT}  
 
 
 logging:
