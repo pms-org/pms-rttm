@@ -47,7 +47,19 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
                 String json = objectMapper.writeValueAsString(metrics);
                 session.sendMessage(new TextMessage(json));
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error while sending metrics websocket message", e);
+                // send minimal fallback so frontend can render
+                try {
+                    List<Map<String, Object>> fallback = new ArrayList<>();
+                    fallback.add(createMetric("Current TPS", 0, "tx/s", "critical"));
+                    fallback.add(createMetric("Peak TPS", 0, "tx/s", "critical"));
+                    fallback.add(createMetric("Avg Latency", 0, "ms", "critical"));
+                    fallback.add(createMetric("DLQ Count", 0, "errors", "healthy"));
+                    fallback.add(createMetric("Kafka Lag", 0, "msgs", "healthy"));
+                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(fallback)));
+                } catch (Exception ex) {
+                    log.error("Failed to send metrics fallback", ex);
+                }
             }
         }, 0, 2, TimeUnit.SECONDS);
     }

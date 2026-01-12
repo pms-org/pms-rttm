@@ -38,7 +38,22 @@ public class PipelineWebSocketHandler extends TextWebSocketHandler {
                 String json = objectMapper.writeValueAsString(pipeline);
                 session.sendMessage(new TextMessage(json));
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Error while sending pipeline websocket message", e);
+                // send minimal fallback so frontend can render empty stages
+                try {
+                    List<Map<String, Object>> fallback = new ArrayList<>();
+                    for (EventStage stage : EventStage.values()) {
+                        Map<String, Object> stageData = new HashMap<>();
+                        stageData.put("name", stage.name());
+                        stageData.put("count", 0);
+                        stageData.put("latencyMs", 0);
+                        stageData.put("successRate", 0.0);
+                        fallback.add(stageData);
+                    }
+                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(fallback)));
+                } catch (Exception ex) {
+                    log.error("Failed to send pipeline fallback", ex);
+                }
             }
         }, 0, 3, TimeUnit.SECONDS);
     }
