@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pms.rttm.service.PipelineDepthService;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.pms.rttm.dto.PipelineStageMetrics;
 import com.pms.rttm.enums.EventStage;
 import java.util.concurrent.Executors;
@@ -17,12 +20,13 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
+@Slf4j
 @Component
 public class PipelineWebSocketHandler extends TextWebSocketHandler {
-    
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    
+
     @Autowired
     private PipelineDepthService pipelineService;
 
@@ -41,12 +45,13 @@ public class PipelineWebSocketHandler extends TextWebSocketHandler {
 
     private List<Map<String, Object>> generatePipelineData() {
         List<Map<String, Object>> pipeline = new ArrayList<>();
-        
+
         try {
             Map<EventStage, PipelineStageMetrics> stageMetrics = pipelineService.fullPipeline();
-            
+
             for (EventStage stage : EventStage.values()) {
                 PipelineStageMetrics metrics = stageMetrics.get(stage);
+                log.debug(metrics.toString());
                 if (metrics != null) {
                     Map<String, Object> stageData = new HashMap<>();
                     stageData.put("name", stage.name());
@@ -56,19 +61,11 @@ public class PipelineWebSocketHandler extends TextWebSocketHandler {
                     pipeline.add(stageData);
                 }
             }
+            log.debug(pipeline.toString());
         } catch (Exception e) {
-            // Fallback to sample stages if service fails
-            String[] stages = {"RECEIVED", "VALIDATED", "ENRICHED", "ANALYZED", "COMMITTED"};
-            for (String stage : stages) {
-                Map<String, Object> stageData = new HashMap<>();
-                stageData.put("name", stage);
-                stageData.put("count", 0);
-                stageData.put("latencyMs", 0);
-                stageData.put("successRate", 0.0);
-                pipeline.add(stageData);
-            }
+            log.error("Error occured while getting data from Pipeline Service: {}", e);
         }
-        
+
         return pipeline;
     }
 }

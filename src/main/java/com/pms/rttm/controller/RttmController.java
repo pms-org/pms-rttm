@@ -23,7 +23,9 @@ import com.pms.rttm.service.PipelineDepthService;
 import com.pms.rttm.service.TpsMetricsService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/rttm")
 @RequiredArgsConstructor
@@ -45,7 +47,7 @@ public class RttmController {
 
         // Peak TPS (last minute)
         // TODO: Change duration to 1 minute
-        long peak = tpsMetricsService.peakTps(Duration.ofDays(3));
+        long peak = tpsMetricsService.peakTps(Duration.ofDays(10));
         cards.add(new MetricCard("Peak TPS", peak, "tx/s", healthForTps(peak)));
 
         // Avg latency: compute simple average across stages
@@ -57,7 +59,7 @@ public class RttmController {
                 sum += v;
                 cnt++;
             } catch (Exception e) {
-                // ignore individual stage errors
+                log.error("Error occured while getting Avg Latency: {}", e);
             }
         }
         long avgLatency = (cnt == 0) ? 0 : sum / cnt;

@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pms.rttm.service.*;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.pms.rttm.enums.EventStage;
 import java.time.Duration;
 import java.util.concurrent.Executors;
@@ -17,21 +20,22 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
+@Slf4j
 @Component
 public class MetricsWebSocketHandler extends TextWebSocketHandler {
-    
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    
+
     @Autowired
     private TpsMetricsService tpsService;
-    
+
     @Autowired
     private KafkaLagService lagService;
-    
+
     @Autowired
     private LatencyMetricsService latencyService;
-    
+
     @Autowired
     private DlqMetricsService dlqService;
 
@@ -50,31 +54,40 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
 
     private List<Map<String, Object>> generateMetrics() {
         List<Map<String, Object>> metrics = new ArrayList<>();
-        
+
         try {
             long currentTps = tpsService.currentTps();
-            long peakTps = tpsService.peakTps(Duration.ofMinutes(5));
-            long avgLatency = latencyService.avgLatency(EventStage.RECEIVED);
+
+            // TODO: Change duration to 1 minute
+            long peakTps = tpsService.peakTps(Duration.ofDays(10));
+
+            long sum = 0;
+            int cnt = 0;
+            for (EventStage s : EventStage.values()) {
+                try {
+                    long v = latencyService.avgLatency(s);
+                    sum += v;
+                    cnt++;
+                } catch (Exception e) {
+                    log.error("Error occured while getting Avg Latency: {}", e);
+                }
+            }
+            long avgLatency = (cnt == 0) ? 0 : sum / cnt;
             long dlqCount = dlqService.totalDlq();
             long kafkaLag = lagService.totalLag();
-            
-            metrics.add(createMetric("Current TPS", (int)currentTps, "tx/s", getStatus(currentTps, 50)));
-            metrics.add(createMetric("Peak TPS", (int)peakTps, "tx/s", getStatus(peakTps, 100)));
-            metrics.add(createMetric("Avg Latency", (int)avgLatency, "ms", getLatencyStatus(avgLatency)));
-            metrics.add(createMetric("DLQ Count", (int)dlqCount, "errors", getDlqStatus(dlqCount)));
-            metrics.add(createMetric("Kafka Lag", (int)kafkaLag, "msgs", getLagStatus(kafkaLag)));
+
+            metrics.add(createMetric("Current TPS", (int) currentTps, "tx/s", getStatus(currentTps, 50)));
+            metrics.add(createMetric("Peak TPS", (int) peakTps, "tx/s", getStatus(peakTps, 100)));
+            metrics.add(createMetric("Avg Latency", (int) avgLatency, "ms", getLatencyStatus(avgLatency)));
+            metrics.add(createMetric("DLQ Count", (int) dlqCount, "errors", getDlqStatus(dlqCount)));
+            metrics.add(createMetric("Kafka Lag", (int) kafkaLag, "msgs", getLagStatus(kafkaLag)));
         } catch (Exception e) {
-            // Fallback to sample data if services fail
-            metrics.add(createMetric("Current TPS", 0, "tx/s", "critical"));
-            metrics.add(createMetric("Peak TPS", 0, "tx/s", "critical"));
-            metrics.add(createMetric("Avg Latency", 0, "ms", "critical"));
-            metrics.add(createMetric("DLQ Count", 0, "errors", "healthy"));
-            metrics.add(createMetric("Kafka Lag", 0, "msgs", "healthy"));
+            log.error("Error while getting metrics: {}", e);
         }
-        
+
         return metrics;
     }
-    
+
     private Map<String, Object> createMetric(String title, int value, String unit, String status) {
         Map<String, Object> metric = new HashMap<>();
         metric.put("title", title);
@@ -83,28 +96,36 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
         metric.put("status", status);
         return metric;
     }
-    
+
     private String getStatus(long value, long threshold) {
-        if (value > threshold * 2) return "critical";
-        if (value > threshold) return "warning";
+        if (value > threshold * 2)
+            return "critical";
+        if (value > threshold)
+            return "warning";
         return "healthy";
     }
-    
+
     private String getLatencyStatus(long latency) {
-        if (latency > 500) return "critical";
-        if (latency > 200) return "warning";
+        if (latency > 500)
+            return "critical";
+        if (latency > 200)
+            return "warning";
         return "healthy";
     }
-    
+
     private String getDlqStatus(long dlqCount) {
-        if (dlqCount > 100) return "critical";
-        if (dlqCount > 10) return "warning";
+        if (dlqCount > 100)
+            return "critical";
+        if (dlqCount > 10)
+            return "warning";
         return "healthy";
     }
-    
+
     private String getLagStatus(long lag) {
-        if (lag > 10000) return "critical";
-        if (lag > 1000) return "warning";
+        if (lag > 10000)
+            return "critical";
+        if (lag > 1000)
+            return "warning";
         return "healthy";
     }
 }
