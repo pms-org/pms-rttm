@@ -224,6 +224,16 @@ VALUES
 ('trade-validator', 'trades.raw', 2, 5200, 5000, 'cg-validate', '2026-01-09 04:30:09');
 
 
+-- additional queue metric snapshots to create varied partition lags
+INSERT INTO rttm_queue_metrics
+(service_name, topic_name, partition_id, produced_offset, consumed_offset, consumer_group, snapshot_time)
+VALUES
+('trade-validator', 'trades.raw', 3, 5300, 4900, 'cg-validate', '2026-01-09 04:30:09'),
+('trade-validator', 'trades.raw', 4, 5400, 5400, 'cg-validate', '2026-01-09 04:30:09'),
+('trade-ingest',  'trades.raw', 0, 6000, 5950, 'cg-ingest',   '2026-01-09 04:30:09'),
+('trade-ingest',  'trades.raw', 1, 6100, 6000, 'cg-ingest',   '2026-01-09 04:30:09');
+
+
 -- rttm_dlq_events
 
 
@@ -283,34 +293,34 @@ VALUES
 -- rttm_alert_thresholds
 
 
--- INSERT INTO rttm_alert_thresholds
--- (metric_name, service_name, threshold_value, comparison, severity)
--- VALUES
--- ('TPS', 'none', 1000, '>', 'HIGH'),
--- ('DLQ_COUNT', 'trade-validator', 10, '>', 'CRITICAL'),
--- ('LATENCY_P99', 'trade-enricher', 500, '>', 'HIGH');
+INSERT INTO rttm_alert_thresholds
+(metric_name, service_name, threshold_value, comparison, severity)
+VALUES
+('TPS', 'none', 1000, '>', 'HIGH'),
+('DLQ_COUNT', 'trade-validator', 10, '>', 'CRITICAL'),
+('LATENCY_P99', 'trade-enricher', 500, '>', 'HIGH');
 
 
 -- -- rttm_alerts
 
 
 -- INSERT INTO rttm_alerts
--- (metric_name, service_name, current_value, threshold_value, severity, triggered_time, status)
--- VALUES
--- ('LATENCY_P99', 'trade-enricher', 620, 500, 'HIGH', '2026-01-09 04:27:09', 'ACTIVE');
+(metric_name, service_name, current_value, threshold_value, severity, triggered_time, status)
+VALUES
+('LATENCY_P99', 'trade-enricher', 620, 500, 'HIGH', '2026-01-09 04:27:09', 'ACTIVE');
 
--- INSERT INTO rttm_alerts
--- (metric_name, service_name, current_value, threshold_value, severity, triggered_time, status)
--- VALUES
--- ('DLQ_COUNT', 'trade-validator', 14, 10, 'CRITICAL', '2026-01-09 04:28:30', 'ACTIVE'),
+INSERT INTO rttm_alerts
+(metric_name, service_name, current_value, threshold_value, severity, triggered_time, status)
+VALUES
+('DLQ_COUNT', 'trade-validator', 14, 10, 'CRITICAL', '2026-01-09 04:28:30', 'ACTIVE'),
 
--- ('ERROR_RATE', 'trade-enricher', 7.5, 5.0, 'HIGH', '2026-01-09 04:29:15', 'ACTIVE'),
+('ERROR_RATE', 'trade-enricher', 7.5, 5.0, 'HIGH', '2026-01-09 04:29:15', 'ACTIVE'),
 
--- ('QUEUE_LAG', 'trade-validator', 450, 300, 'HIGH', '2026-01-09 04:30:00', 'ACTIVE'),
+('QUEUE_LAG', 'trade-validator', 450, 300, 'HIGH', '2026-01-09 04:30:00', 'ACTIVE'),
 
--- ('LATENCY_P95', 'trade-committer', 380, 300, 'MEDIUM', '2026-01-09 04:31:10', 'ACTIVE'),
+('LATENCY_P95', 'trade-committer', 380, 300, 'MEDIUM', '2026-01-09 04:31:10', 'ACTIVE'),
 
--- ('TPS', 'none', 1250, 1000, 'HIGH', '2026-01-09 04:32:00', 'RESOLVED');
+('TPS', 'none', 1250, 1000, 'HIGH', '2026-01-09 04:32:00', 'RESOLVED');
 
 
 -- rttm_stage_latency
@@ -322,6 +332,16 @@ VALUES
 ('a2c04c8f-aa0b-4f6d-bd56-f103f612fcc1', 'trade-validator', 'VALIDATED', 120, '2026-01-09 04:20:09'),
 ('a2c04c8f-aa0b-4f6d-bd56-f103f612fcc1', 'trade-enricher', 'ENRICHED', 240, '2026-01-09 04:21:09'),
 ('a2c04c8f-aa0b-4f6d-bd56-f103f612fcc1', 'trade-committer', 'COMMITTED', 180, '2026-01-09 04:22:09');
+
+
+-- add RECEIVED stage latencies so latencyStats for RECEIVED returns values
+INSERT INTO rttm_stage_latency
+(trade_id, service_name, stage_name, latency_ms, event_time)
+VALUES
+('00000000-0000-0000-0000-000000000001', 'trade-ingest', 'RECEIVED', 95,  '2026-01-09 04:18:09'),
+('00000000-0000-0000-0000-000000000002', 'trade-ingest', 'RECEIVED', 110, '2026-01-09 04:18:29'),
+('00000000-0000-0000-0000-000000000003', 'trade-ingest', 'RECEIVED', 85,  '2026-01-09 04:18:49'),
+('00000000-0000-0000-0000-000000000004', 'trade-ingest', 'RECEIVED', 130, '2026-01-09 04:19:09');
 
 
 INSERT INTO rttm_stage_latency
@@ -394,3 +414,15 @@ VALUES
 ('e75447ad-0a05-4c79-b54c-25d5d94d115b', 'trade-validator', 'VALIDATED', 120, '2026-01-09 04:20:09'),
 ('e75447ad-0a05-4c79-b54c-25d5d94d115b', 'trade-enricher', 'ENRICHED', 240, '2026-01-09 04:21:09'),
 ('e75447ad-0a05-4c79-b54c-25d5d94d115b', 'trade-committer', 'COMMITTED', 180, '2026-01-09 04:22:09');
+
+
+-- additional received trade events to increase TPS counts in recent minutes
+INSERT INTO rttm_trade_events
+(trade_id, service_name, event_type, event_stage, event_status,
+ source_queue, target_queue, topic_name, consumer_group, partition_id, offset_value, event_time, message)
+VALUES
+('11111111-1111-1111-1111-111111111111', 'trade-ingest', 'TRADE_RECEIVED', 'RECEIVED', 'SUCCESS', 'trade.in', 'trade.validate', 'trades.raw', 'cg-ingest', 0, 1010, '2026-01-09 04:20:10', 'Trade received'),
+('22222222-2222-2222-2222-222222222222', 'trade-ingest', 'TRADE_RECEIVED', 'RECEIVED', 'SUCCESS', 'trade.in', 'trade.validate', 'trades.raw', 'cg-ingest', 1, 1011, '2026-01-09 04:20:11', 'Trade received'),
+('33333333-3333-3333-3333-333333333333', 'trade-ingest', 'TRADE_RECEIVED', 'RECEIVED', 'SUCCESS', 'trade.in', 'trade.validate', 'trades.raw', 'cg-ingest', 2, 1012, '2026-01-09 04:20:12', 'Trade received'),
+('44444444-4444-4444-4444-444444444444', 'trade-ingest', 'TRADE_RECEIVED', 'RECEIVED', 'SUCCESS', 'trade.in', 'trade.validate', 'trades.raw', 'cg-ingest', 0, 1013, '2026-01-09 04:20:13', 'Trade received'),
+('55555555-5555-5555-5555-555555555555', 'trade-ingest', 'TRADE_RECEIVED', 'RECEIVED', 'SUCCESS', 'trade.in', 'trade.validate', 'trades.raw', 'cg-ingest', 1, 1014, '2026-01-09 04:20:14', 'Trade received');
