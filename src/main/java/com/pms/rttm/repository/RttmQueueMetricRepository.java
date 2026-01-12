@@ -72,7 +72,8 @@ public interface RttmQueueMetricRepository
 		return lagByPartitionRaw()
 				.stream()
 				.collect(Collectors.toMap(
-						r -> (Integer) r[0],
-						r -> (Long) r[1]));
+						r -> ((Number) r[0]).intValue(),
+						r -> ((Number) r[1]).longValue(),
+						(oldV, newV) -> oldV + newV));
 	}
 }

@@ -4,14 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AvgP95P99Latency {
-
-    private Number avg;
-    private Number p95;
-    private Number p99;
+public class DlqDetail {
+    private Long total;
+    private String lastError;
+    private List<DlqError> errors;
 }

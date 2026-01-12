@@ -27,6 +27,8 @@ public class TpsBucket {
             this.bucketTime = ldt.toInstant(ZoneOffset.UTC);
         } else if (bucketTime instanceof java.sql.Timestamp ts) {
             this.bucketTime = ts.toInstant();
+        } else if (bucketTime instanceof Instant inst) {
+            this.bucketTime = inst;
         } else {
             throw new IllegalArgumentException("Unknown date type: " + bucketTime.getClass());
         }

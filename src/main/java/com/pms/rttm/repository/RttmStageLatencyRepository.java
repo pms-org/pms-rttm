@@ -24,7 +24,7 @@ public interface RttmStageLatencyRepository
                     PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY latency_ms) AS p95,
                     PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY latency_ms) AS p99
                 FROM rttm_stage_latency
-                WHERE event_stage = :stage
+                WHERE stage_name = :stage
             """, nativeQuery = true)
     AvgP95P99Latency latencyStats(@Param("stage") String stage);
 }

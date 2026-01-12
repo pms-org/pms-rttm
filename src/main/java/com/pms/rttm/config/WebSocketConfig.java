@@ -7,6 +7,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import com.pms.rttm.websocket.MetricsWebSocketHandler;
 import com.pms.rttm.websocket.PipelineWebSocketHandler;
 import com.pms.rttm.websocket.DlqWebSocketHandler;
+import com.pms.rttm.websocket.RttmTelemetryWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -17,6 +18,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final MetricsWebSocketHandler metricsWebSocketHandler;
     private final PipelineWebSocketHandler pipelineWebSocketHandler;
     private final DlqWebSocketHandler dlqWebSocketHandler;
+    private final RttmTelemetryWebSocketHandler rttmTelemetryWebSocketHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -27,6 +29,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 .setAllowedOrigins("*");
 
         registry.addHandler(dlqWebSocketHandler, "/ws/rttm/dlq")
+                .setAllowedOrigins("*");
+
+        registry.addHandler(rttmTelemetryWebSocketHandler, "/ws/rttm/telemetry")
                 .setAllowedOrigins("*");
     }
 }
