@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.Map;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class DlqWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        scheduler.scheduleAtFixedRate(() -> {
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
             try {
                 long total = dlqService.totalDlq();
 
@@ -40,16 +41,36 @@ public class DlqWebSocketHandler extends TextWebSocketHandler {
 
                 DlqOverview overview = new DlqOverview(total, byStage);
                 String json = objectMapper.writeValueAsString(overview);
-                session.sendMessage(new TextMessage(json));
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(json));
+                }
             } catch (Exception e) {
                 log.error("Error sending DLQ overview websocket message", e);
                 try {
-                    DlqOverview fallback = new DlqOverview(0L, new HashMap<>());
-                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(fallback)));
+                    if (session.isOpen()) {
+                        DlqOverview fallback = new DlqOverview(0L, new HashMap<>());
+                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(fallback)));
+                    }
                 } catch (Exception ex) {
                     log.error("Failed to send DLQ fallback", ex);
                 }
             }
         }, 0, 3, TimeUnit.SECONDS);
+
+        session.getAttributes().put("telemetryFuture", future);
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status)
+            throws Exception {
+        Object f = session.getAttributes().get("telemetryFuture");
+        if (f instanceof ScheduledFuture) {
+            try {
+                ((ScheduledFuture<?>) f).cancel(true);
+            } catch (Exception e) {
+                log.warn("Failed to cancel DLQ telemetry future for closed session", e);
+            }
+        }
+        super.afterConnectionClosed(session, status);
     }
 }

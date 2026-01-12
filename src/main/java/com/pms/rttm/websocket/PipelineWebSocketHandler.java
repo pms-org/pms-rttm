@@ -14,6 +14,7 @@ import com.pms.rttm.dto.PipelineStageMetrics;
 import com.pms.rttm.enums.EventStage;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 import java.util.ArrayList;
@@ -32,30 +33,50 @@ public class PipelineWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        scheduler.scheduleAtFixedRate(() -> {
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
             try {
                 List<Map<String, Object>> pipeline = generatePipelineData();
                 String json = objectMapper.writeValueAsString(pipeline);
-                session.sendMessage(new TextMessage(json));
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(json));
+                }
             } catch (Exception e) {
                 log.error("Error while sending pipeline websocket message", e);
                 // send minimal fallback so frontend can render empty stages
                 try {
-                    List<Map<String, Object>> fallback = new ArrayList<>();
-                    for (EventStage stage : EventStage.values()) {
-                        Map<String, Object> stageData = new HashMap<>();
-                        stageData.put("name", stage.name());
-                        stageData.put("count", 0);
-                        stageData.put("latencyMs", 0);
-                        stageData.put("successRate", 0.0);
-                        fallback.add(stageData);
+                    if (session.isOpen()) {
+                        List<Map<String, Object>> fallback = new ArrayList<>();
+                        for (EventStage stage : EventStage.values()) {
+                            Map<String, Object> stageData = new HashMap<>();
+                            stageData.put("name", stage.name());
+                            stageData.put("count", 0);
+                            stageData.put("latencyMs", 0);
+                            stageData.put("successRate", 0.0);
+                            fallback.add(stageData);
+                        }
+                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(fallback)));
                     }
-                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(fallback)));
                 } catch (Exception ex) {
                     log.error("Failed to send pipeline fallback", ex);
                 }
             }
         }, 0, 3, TimeUnit.SECONDS);
+
+        session.getAttributes().put("telemetryFuture", future);
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status)
+            throws Exception {
+        Object f = session.getAttributes().get("telemetryFuture");
+        if (f instanceof ScheduledFuture) {
+            try {
+                ((ScheduledFuture<?>) f).cancel(true);
+            } catch (Exception e) {
+                log.warn("Failed to cancel pipeline telemetry future for closed session", e);
+            }
+        }
+        super.afterConnectionClosed(session, status);
     }
 
     private List<Map<String, Object>> generatePipelineData() {
@@ -66,7 +87,6 @@ public class PipelineWebSocketHandler extends TextWebSocketHandler {
 
             for (EventStage stage : EventStage.values()) {
                 PipelineStageMetrics metrics = stageMetrics.get(stage);
-                log.debug(metrics.toString());
                 if (metrics != null) {
                     Map<String, Object> stageData = new HashMap<>();
                     stageData.put("name", stage.name());
@@ -76,7 +96,6 @@ public class PipelineWebSocketHandler extends TextWebSocketHandler {
                     pipeline.add(stageData);
                 }
             }
-            log.debug(pipeline.toString());
         } catch (Exception e) {
             log.error("Error occured while getting data from Pipeline Service: {}", e);
         }
