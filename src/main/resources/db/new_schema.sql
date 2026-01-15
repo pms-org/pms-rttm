@@ -117,9 +117,9 @@ ON rttm_parsed_logs (event_time);
 CREATE INDEX idx_logs_trade
 ON rttm_parsed_logs (trade_id);
 
--- ALERT THRESHOLDS CONFIGURATION
+-- ALERT THRESHOLDS CONFIGURATION 
 -- Defines alert rules evaluated by RTTM engine
-CREATE TABLE rttm_alert_thresholds (
+CREATE TABLE rttm_alert_thresholds (    -- (NOT IN DB)
     id              BIGSERIAL PRIMARY KEY,
     metric_name     VARCHAR(64) NOT NULL,        -- TPS / KAFKA_LAG / DLQ_COUNT / ERROR_RATE / LATENCY_P99
     service_name    VARCHAR(64),                 -- Optional service-specific threshold
@@ -140,6 +140,10 @@ CREATE TABLE rttm_alerts (
     triggered_time  TIMESTAMP NOT NULL,          -- When alert was raised
     status          VARCHAR(16) NOT NULL         -- ACTIVE / ACKED / RESOLVED
 );
+
+CREATE INDEX IF NOT EXISTS idx_alerts_triggered_time
+    ON rttm_alerts (triggered_time);
+
 
 -- STAGE LATENCY TABLE
 -- Stores computed latency per pipeline stage

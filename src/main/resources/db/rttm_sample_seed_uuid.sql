@@ -301,10 +301,10 @@ VALUES
 ('LATENCY_P99', 'trade-enricher', 500, '>', 'HIGH');
 
 
--- -- rttm_alerts
+-- rttm_alerts
 
 
--- INSERT INTO rttm_alerts
+INSERT INTO rttm_alerts
 (metric_name, service_name, current_value, threshold_value, severity, triggered_time, status)
 VALUES
 ('LATENCY_P99', 'trade-enricher', 620, 500, 'HIGH', '2026-01-09 04:27:09', 'ACTIVE');
@@ -322,6 +322,21 @@ VALUES
 
 ('TPS', 'none', 1250, 1000, 'HIGH', '2026-01-09 04:32:00', 'RESOLVED');
 
+
+INSERT INTO rttm_alerts (metric_name, service_name, current_value, threshold_value, severity, triggered_time, status)
+VALUES
+('KAFKA_LAG', 'trade-ingest', 1250.0, 1000.0, 'HIGH', '2026-01-15 10:42:00', 'ACTIVE'),
+('KAFKA_LAG', 'trade-validator', 820.0, 500.0, 'MEDIUM', '2026-01-15 10:39:30', 'ACTIVE'),
+('DLQ_COUNT', 'trade-enricher', 23.0, 5.0, 'HIGH', '2026-01-15 10:40:10', 'ACTIVE'),
+('DLQ_COUNT', 'trade-committer', 4.0, 10.0, 'LOW', '2026-01-15 09:58:00', 'RESOLVED'),
+('ERROR_RATE', 'trade-analyzer', 0.085, 0.05, 'MEDIUM', '2026-01-15 10:37:55', 'ACTIVE'),
+('LATENCY_P99', 'trade-enricher', 230.0, 200.0, 'HIGH', '2026-01-15 10:41:12', 'ACTIVE'),
+('TPS', NULL, 650.0, 1200.0, 'MEDIUM', '2026-01-15 10:35:00', 'ACTIVE'),
+('LATENCY_P95', 'trade-committer', 120.0, 150.0, 'LOW', '2026-01-15 10:32:00', 'ACKED'),
+('KAFKA_LAG', 'kafka-consumer-group-A', 340.0, 300.0, 'MEDIUM', '2026-01-15 10:30:00', 'ACTIVE'),
+('ERROR_RATE', 'trade-validator', 0.012, 0.01, 'LOW', '2026-01-15 09:50:45', 'RESOLVED'),
+('ANOMALY_DETECTOR_SCORE', NULL, 0.92, 0.8, 'CRITICAL', '2026-01-15 10:43:05', 'ACTIVE'),
+('DLQ_SPIKE', 'trade-ingest', 45.0, 10.0, 'CRITICAL', '2026-01-15 10:44:00', 'ACTIVE');
 
 -- rttm_stage_latency
 
