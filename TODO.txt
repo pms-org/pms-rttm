@@ -1,3 +1,1 @@
-TODO: modify consumers to convert proto -> entity and send to ingestService
-TODO: Write entities, repos, ws handlers for `rttm_alert_thresholds`, `rttm_alerts`.
-TODO: Develop log parsing feature with `rttm_parsed_logs` schema
+TODO: Write algorithm / logics for creating and saving alerts into DB during application runtime when things go above certain threshold. 
