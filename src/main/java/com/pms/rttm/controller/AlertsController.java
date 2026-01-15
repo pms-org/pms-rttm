@@ -20,7 +20,7 @@ public class AlertsController {
 
     @GetMapping("/alerts")
     public ResponseEntity<List<Alert>> alerts(@RequestParam(name = "status", defaultValue = "ACTIVE") String status,
-            @RequestParam(name = "limit", defaultValue = "20") int limit) {
+            @RequestParam(name = "limit", defaultValue = "10") int limit) {
         List<Alert> res = alertsService.latestByStatus(status, limit);
         return ResponseEntity.ok(res);
     }
