@@ -7,6 +7,7 @@ import com.pms.rttm.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -55,7 +56,7 @@ public class RttmTelemetryWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status)
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status)
             throws Exception {
         Object f = session.getAttributes().get("telemetryFuture");
         if (f instanceof ScheduledFuture) {

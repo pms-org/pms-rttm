@@ -8,6 +8,7 @@ import com.pms.rttm.websocket.MetricsWebSocketHandler;
 import com.pms.rttm.websocket.PipelineWebSocketHandler;
 import com.pms.rttm.websocket.DlqWebSocketHandler;
 import com.pms.rttm.websocket.RttmTelemetryWebSocketHandler;
+import com.pms.rttm.websocket.AlertsWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -15,23 +16,27 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    private final MetricsWebSocketHandler metricsWebSocketHandler;
-    private final PipelineWebSocketHandler pipelineWebSocketHandler;
-    private final DlqWebSocketHandler dlqWebSocketHandler;
-    private final RttmTelemetryWebSocketHandler rttmTelemetryWebSocketHandler;
+        private final MetricsWebSocketHandler metricsWebSocketHandler;
+        private final PipelineWebSocketHandler pipelineWebSocketHandler;
+        private final DlqWebSocketHandler dlqWebSocketHandler;
+        private final RttmTelemetryWebSocketHandler rttmTelemetryWebSocketHandler;
+        private final AlertsWebSocketHandler alertsWebSocketHandler;
 
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(metricsWebSocketHandler, "/ws/rttm/metrics")
-                .setAllowedOrigins("*");
+        @Override
+        public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+                registry.addHandler(metricsWebSocketHandler, "/ws/rttm/metrics")
+                                .setAllowedOrigins("*");
 
-        registry.addHandler(pipelineWebSocketHandler, "/ws/rttm/pipeline")
-                .setAllowedOrigins("*");
+                registry.addHandler(pipelineWebSocketHandler, "/ws/rttm/pipeline")
+                                .setAllowedOrigins("*");
 
-        registry.addHandler(dlqWebSocketHandler, "/ws/rttm/dlq")
-                .setAllowedOrigins("*");
+                registry.addHandler(dlqWebSocketHandler, "/ws/rttm/dlq")
+                                .setAllowedOrigins("*");
 
-        registry.addHandler(rttmTelemetryWebSocketHandler, "/ws/rttm/telemetry")
-                .setAllowedOrigins("*");
-    }
+                registry.addHandler(rttmTelemetryWebSocketHandler, "/ws/rttm/telemetry")
+                                .setAllowedOrigins("*");
+
+                registry.addHandler(alertsWebSocketHandler, "/ws/rttm/alerts")
+                                .setAllowedOrigins("*");
+        }
 }
