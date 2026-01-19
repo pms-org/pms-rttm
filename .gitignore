@@ -40,3 +40,4 @@ build/
 
 docker/data
 
+.github/copilot-instructions.md
