@@ -12,4 +12,16 @@ schema:
 logging:
   level:
     com.pms.rttm: DEBUG
+
+# RTTM batching and queue settings (developer defaults)
+rttm:
+  batch:
+    size: 100
+    poll-ms: 2000
+  queue:
+    capacity: 10000
+  consumer:
+    concurrency: 3
+  fetch:
+    max-wait-ms: 3000
     org.springframework.kafka: DEBUG

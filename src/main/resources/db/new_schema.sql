@@ -3,7 +3,7 @@
 -- Drives: TPS, pipeline depth, trade tracking, latency derivation
 CREATE TABLE rttm_trade_events (
     id              BIGSERIAL PRIMARY KEY,
-    trade_id        VARCHAR(64) NOT NULL,        -- Unique trade identifier across entire pipeline
+    trade_id        UUID NOT NULL,               -- Unique trade identifier across entire pipeline
     service_name    VARCHAR(64) NOT NULL,        -- Name of the microservice emitting the event
     event_type      VARCHAR(64) NOT NULL,        -- Technical event (RECEIVED, CONSUMED, PRODUCED, FAILED, ACKED)
     event_stage     VARCHAR(64) NOT NULL,        -- Business stage: RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
@@ -57,7 +57,7 @@ ON rttm_queue_metrics (topic_name, partition_id);
 -- Drives: DLQ count, DLQ trends, error-by-stage
 CREATE TABLE rttm_dlq_events (
     id              BIGSERIAL PRIMARY KEY,
-    trade_id        VARCHAR(64),                 -- Trade ID (may be null if failure before trade creation)
+    trade_id        UUID NOT NULL,                 -- Trade ID (may be null if failure before trade creation)
     service_name    VARCHAR(64) NOT NULL,        -- Service that sent message to DLQ
     topic_name      VARCHAR(128) NOT NULL,       -- DLQ topic name
     original_topic  VARCHAR(128),                -- Original topic before DLQ redirection
@@ -79,10 +79,11 @@ ON rttm_dlq_events (service_name);
 -- Drives: Error rate %, alerts, failure analysis
 CREATE TABLE rttm_error_events (
     id              BIGSERIAL PRIMARY KEY,
-    trade_id        VARCHAR(64),                 -- Trade related to error (if applicable)
+    trade_id        UUID NOT NULL,               -- Trade related to error (if applicable)
     service_name    VARCHAR(64) NOT NULL,        -- Service where error occurred
     error_type      VARCHAR(64) NOT NULL,        -- TECHNICAL / BUSINESS / TIMEOUT / DESERIALIZATION
-    error_message   TEXT NOT NULL,                -- Full error description
+    error_message   TEXT NOT NULL,               -- Full error description
+    event_stage     VARCHAR(64) NOT NULL,
     event_time      TIMESTAMP NOT NULL           -- Time of error occurrence
 );
 
@@ -103,7 +104,7 @@ CREATE TABLE rttm_parsed_logs (
     log_level       VARCHAR(16) NOT NULL,        -- INFO / WARN / ERROR / DEBUG
     log_category    VARCHAR(64) NOT NULL,        -- KAFKA / DB / RETRY / PERFORMANCE / SECURITY
     log_source      VARCHAR(64),                 -- Class or component name
-    trade_id        VARCHAR(64),                 -- Related trade ID (if available)
+    trade_id        UUID NOT NULL,                 -- Related trade ID (if available)
     message         TEXT NOT NULL,                -- Parsed and normalized log message
     event_time      TIMESTAMP NOT NULL           -- Log timestamp
 );
@@ -116,9 +117,9 @@ ON rttm_parsed_logs (event_time);
 CREATE INDEX idx_logs_trade
 ON rttm_parsed_logs (trade_id);
 
--- ALERT THRESHOLDS CONFIGURATION
+-- ALERT THRESHOLDS CONFIGURATION 
 -- Defines alert rules evaluated by RTTM engine
-CREATE TABLE rttm_alert_thresholds (
+CREATE TABLE rttm_alert_thresholds (    -- (NOT IN DB)
     id              BIGSERIAL PRIMARY KEY,
     metric_name     VARCHAR(64) NOT NULL,        -- TPS / KAFKA_LAG / DLQ_COUNT / ERROR_RATE / LATENCY_P99
     service_name    VARCHAR(64),                 -- Optional service-specific threshold
@@ -140,12 +141,16 @@ CREATE TABLE rttm_alerts (
     status          VARCHAR(16) NOT NULL         -- ACTIVE / ACKED / RESOLVED
 );
 
+CREATE INDEX IF NOT EXISTS idx_alerts_triggered_time
+    ON rttm_alerts (triggered_time);
+
+
 -- STAGE LATENCY TABLE
 -- Stores computed latency per pipeline stage
 -- Drives: Avg latency, P95 / P99, stage latency cards
 CREATE TABLE rttm_stage_latency (
     id            BIGSERIAL PRIMARY KEY,
-    trade_id      VARCHAR(64) NOT NULL,          -- Trade identifier
+    trade_id      UUID NOT NULL,                 -- Trade identifier
     service_name  VARCHAR(64) NOT NULL,          -- Service processing this stage
     stage_name    VARCHAR(32) NOT NULL,          -- RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
     latency_ms    BIGINT NOT NULL,               -- Processing latency in milliseconds

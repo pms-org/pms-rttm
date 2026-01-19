@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>RTTM WebSocket Test</h1>
+    <div id="status"></div>
+    <div id="messages"></div>
+ 
+    <script>
+        const status = document.getElementById('status');
+        const messages = document.getElementById('messages');
+
+        // Test metrics WebSocket
+        const metricsWs = new WebSocket('ws://localhost:8085/ws/rttm/metrics');
+        
+        metricsWs.onopen = () => {
+            status.innerHTML += '<p>✅ Metrics WebSocket connected</p>';
+        };
+        
+        metricsWs.onmessage = (event) => {
+            messages.innerHTML += `<p><strong>Metrics:</strong> ${event.data}</p>`;
+        };
+        
+        metricsWs.onerror = (error) => {
+            status.innerHTML += '<p>❌ Metrics WebSocket error</p>';
+        };
+
+        // Test pipeline WebSocket
+        const pipelineWs = new WebSocket('ws://localhost:8085/ws/rttm/pipeline');
+        
+        pipelineWs.onopen = () => {
+            status.innerHTML += '<p>✅ Pipeline WebSocket connected</p>';
+        };
+        
+        pipelineWs.onmessage = (event) => {
+            messages.innerHTML += `<p><strong>Pipeline:</strong> ${event.data}</p>`;
+        };
+        
+        pipelineWs.onerror = (error) => {
+            status.innerHTML += '<p>❌ Pipeline WebSocket error</p>';
+        };
+    </script>
+</body>
+</html>

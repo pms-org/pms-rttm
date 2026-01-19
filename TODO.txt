@@ -1,0 +1,2 @@
+TODO: Write algorithm / logics for creating and saving alerts into DB during application runtime when things go above certain threshold. 
+TODO: make ws handlers to send only unsent data instead of just polling DB and sending everythings

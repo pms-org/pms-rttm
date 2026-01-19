@@ -1,67 +1,62 @@
 package com.pms.rttm.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pms.rttm.service.StatsService;
+import com.pms.rttm.dto.Alert;
+import com.pms.rttm.service.AlertsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.*;
-import java.util.concurrent.CopyOnWriteArraySet;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-@Component
-@RequiredArgsConstructor
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
-public class AlertsWebSocketHandler implements WebSocketHandler {
+@Component
+public class AlertsWebSocketHandler extends TextWebSocketHandler {
 
-    private final StatsService statsService;
-    private final ObjectMapper objectMapper;
-    private final CopyOnWriteArraySet<WebSocketSession> sessions = new CopyOnWriteArraySet<>();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
-        sessions.add(session);
-        log.info("Alerts WebSocket connection established: {}", session.getId());
-    }
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    @Autowired
+    private AlertsService alertsService;
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        sessions.remove(session);
-        log.info("Alerts WebSocket connection closed: {}", session.getId());
-    }
-
-    @Scheduled(fixedRate = 10000)
-    public void broadcastAlerts() {
-        if (sessions.isEmpty()) return;
-        
-        try {
-            var alerts = statsService.getSystemAlerts();
-            String message = objectMapper.writeValueAsString(alerts);
-            
-            sessions.removeIf(session -> {
-                try {
-                    session.sendMessage(new TextMessage(message));
-                    return false;
-                } catch (Exception e) {
-                    log.warn("Failed to send alerts message to session {}", session.getId());
-                    return true;
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
+            try {
+                List<Alert> list = alertsService.latestByStatus("ACTIVE", 25);
+                String json = objectMapper.writeValueAsString(list);
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(json));
                 }
-            });
-        } catch (Exception e) {
-            log.error("Error broadcasting system alerts", e);
+            } catch (Exception e) {
+                log.error("Error sending alerts websocket message", e);
+            }
+        }, 0, 3, TimeUnit.SECONDS);
+
+        session.getAttributes().put("alertsFuture", future);
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status)
+            throws Exception {
+        Object f = session.getAttributes().get("alertsFuture");
+        if (f instanceof ScheduledFuture) {
+            try {
+                ((ScheduledFuture<?>) f).cancel(true);
+            } catch (Exception e) {
+                log.warn("Failed to cancel alerts future", e);
+            }
         }
-    }
-
-    @Override
-    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {}
-
-    @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception) {
-        sessions.remove(session);
-    }
-
-    @Override
-    public boolean supportsPartialMessages() {
-        return false;
+        super.afterConnectionClosed(session, status);
     }
 }
