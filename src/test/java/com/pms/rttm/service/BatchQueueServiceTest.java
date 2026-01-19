@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
+import java.util.UUID;
 import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,9 +32,9 @@ public class BatchQueueServiceTest {
     public void testTradeBatchSaved() throws Exception {
         // enqueue 3 trade proto messages
         long now = System.currentTimeMillis();
-        String uuid1 = java.util.UUID.randomUUID().toString();
-        String uuid2 = java.util.UUID.randomUUID().toString();
-        String uuid3 = java.util.UUID.randomUUID().toString();
+        String uuid1 = UUID.randomUUID().toString();
+        String uuid2 = UUID.randomUUID().toString();
+        String uuid3 = UUID.randomUUID().toString();
 
         RttmTradeEvent t1 = RttmTradeEvent.newBuilder()
                 .setTradeId(uuid1)
