@@ -14,6 +14,8 @@ import com.pms.rttm.proto.RttmTradeEvent;
 
 @Configuration
 public class TradeEventConsumerConfig extends KafkaConsumerConfig {
+    @Value("${rttm.consumer.concurrency:3}")
+    private int concurrency;
 
     @Bean
     public ConsumerFactory<String, RttmTradeEvent> tradeEventConsumerFactory() {
@@ -28,7 +30,7 @@ public class TradeEventConsumerConfig extends KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, RttmTradeEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(tradeEventConsumerFactory());
-        factory.setConcurrency(3);
+        factory.setConcurrency(concurrency);
         factory.getContainerProperties().setAckMode(AckMode.MANUAL);
         factory.getContainerProperties().setPollTimeout(5000);
         return factory;

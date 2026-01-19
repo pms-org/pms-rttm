@@ -17,6 +17,10 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
     @Value("${schema.registry.url}")
     private String schemaRegistryUrl;
+    @Value("${rttm.batch.size:100}")
+    private int rttmBatchSize;
+    @Value("${rttm.fetch.max-wait-ms:3000}")
+    private int rttmFetchMaxWaitMs;
 
     protected Map<String, Object> baseProps(String groupId) {
 
@@ -30,8 +34,8 @@ public class KafkaConsumerConfig {
         props.put("schema.registry.url", schemaRegistryUrl);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
-        props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 3000);
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, rttmBatchSize);
+        props.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, rttmFetchMaxWaitMs);
 
         return props;
     }

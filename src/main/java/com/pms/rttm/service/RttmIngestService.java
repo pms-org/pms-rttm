@@ -23,16 +23,36 @@ public class RttmIngestService {
         tradeEventRepository.save(entity);
     }
 
+    /** Batch save for trade events */
+    public void ingestBatch(Iterable<RttmTradeEventEntity> entities) {
+        tradeEventRepository.saveAll(entities);
+    }
+
     public void ingest(RttmQueueMetricEntity entity) {
         queueMetricRepository.save(entity);
+    }
+
+    /** Batch save for queue metrics */
+    public void ingestBatchQueueMetrics(Iterable<RttmQueueMetricEntity> entities) {
+        queueMetricRepository.saveAll(entities);
     }
 
     public void ingest(RttmDlqEventEntity entity) {
         dlqEventRepository.save(entity);
     }
 
+    /** Batch save for DLQ events */
+    public void ingestBatchDlqEvents(Iterable<RttmDlqEventEntity> entities) {
+        dlqEventRepository.saveAll(entities);
+    }
+
     public void ingest(RttmErrorEventEntity entity) {
         errorEventRepository.save(entity);
+    }
+
+    /** Batch save for error events */
+    public void ingestBatchErrors(Iterable<RttmErrorEventEntity> entities) {
+        errorEventRepository.saveAll(entities);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.pms.rttm.consumer;
 
-import com.pms.rttm.service.RttmIngestService;
+import com.pms.rttm.service.BatchQueueService;
 import com.pms.rttm.entity.RttmDlqEventEntity;
 import com.pms.rttm.entity.RttmTradeEventEntity;
 import com.pms.rttm.mapper.DlqEventMapper;
@@ -17,18 +17,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DlqEventConsumer {
 
-    private final RttmIngestService ingestService;
+    private final BatchQueueService batchQueueService;
 
     @KafkaListener(topics = "rttm.dlq.events", containerFactory = "dlqListenerFactory")
     public void consume(RttmDlqEvent event, Acknowledgment ack) {
 
         try {
-            RttmDlqEventEntity eventEntity = DlqEventMapper.toEntity(event);
-            ingestService.ingest(eventEntity);
-            ack.acknowledge();
+            boolean offered = batchQueueService.enqueueDlq(event);
+            if (offered)
+                ack.acknowledge();
+            else
+                log.warn("DLQ queue full/timed out, not acknowledging: {}", event);
         } catch (Exception ex) {
-            log.error("Failed to ingest RTTM DLQ event: {}", event, ex);
-            // no ack → Kafka retry
+            log.error("Failed to enqueue RTTM DLQ event: {}", event, ex);
         }
     }
 }

@@ -36,3 +36,15 @@ server:
 logging:
   level:
     com.pms.rttm: DEBUG
+
+# RTTM batching and queue settings
+rttm:
+  batch:
+    size: ${RTTM_BATCH_SIZE:100}
+    poll-ms: ${RTTM_BATCH_POLL_MS:2000}
+  queue:
+    capacity: ${RTTM_QUEUE_CAPACITY:10000}
+  consumer:
+    concurrency: ${RTTM_CONSUMER_CONCURRENCY:3}
+  fetch:
+    max-wait-ms: ${RTTM_FETCH_MAX_WAIT_MS:3000}

@@ -1,6 +1,6 @@
 package com.pms.rttm.consumer;
 
-import com.pms.rttm.service.RttmIngestService;
+import com.pms.rttm.service.BatchQueueService;
 import com.pms.rttm.entity.RttmErrorEventEntity;
 import com.pms.rttm.mapper.ErrorEventMapper;
 import com.pms.rttm.proto.RttmErrorEvent;
@@ -15,18 +15,19 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ErrorEventConsumer {
 
-    private final RttmIngestService ingestService;
+    private final BatchQueueService batchQueueService;
 
     @KafkaListener(topics = "rttm.error.events", containerFactory = "errorListenerFactory")
     public void consume(RttmErrorEvent event, Acknowledgment ack) {
 
         try {
-            RttmErrorEventEntity eventEntity = ErrorEventMapper.toEntity(event);
-            ingestService.ingest(eventEntity);
-            ack.acknowledge();
+            boolean offered = batchQueueService.enqueueError(event);
+            if (offered)
+                ack.acknowledge();
+            else
+                log.warn("Error queue full/timed out, not acknowledging: {}", event);
         } catch (Exception ex) {
-            log.error("Failed to ingest RTTM error event: {}", event, ex);
-            // no ack → retry
+            log.error("Failed to enqueue RTTM error event: {}", event, ex);
         }
     }
 }

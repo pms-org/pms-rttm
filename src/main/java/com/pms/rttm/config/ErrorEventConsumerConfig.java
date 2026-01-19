@@ -2,6 +2,7 @@ package com.pms.rttm.config;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -12,6 +13,9 @@ import com.pms.rttm.proto.RttmErrorEvent;
 
 @Configuration
 public class ErrorEventConsumerConfig extends KafkaConsumerConfig {
+
+    @Value("${rttm.consumer.concurrency:3}")
+    private int concurrency;
 
     @Bean
     public ConsumerFactory<String, RttmErrorEvent> errorConsumerFactory() {
@@ -26,7 +30,7 @@ public class ErrorEventConsumerConfig extends KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, RttmErrorEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(errorConsumerFactory());
-        factory.setConcurrency(3);
+        factory.setConcurrency(concurrency);
         factory.getContainerProperties().setAckMode(AckMode.MANUAL);
         factory.getContainerProperties().setPollTimeout(5000);
         return factory;

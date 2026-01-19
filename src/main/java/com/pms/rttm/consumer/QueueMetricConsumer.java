@@ -4,7 +4,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
-import com.pms.rttm.service.RttmIngestService;
+import com.pms.rttm.service.BatchQueueService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,17 +20,18 @@ import com.pms.rttm.proto.RttmQueueMetric;
 @RequiredArgsConstructor
 public class QueueMetricConsumer {
 
-    private final RttmIngestService service;
+    private final BatchQueueService batchQueueService;
 
     @KafkaListener(topics = "rttm.queue.metrics", containerFactory = "queueMetricListenerFactory")
     public void consume(RttmQueueMetric metric, Acknowledgment ack) {
         try {
-            RttmQueueMetricEntity eventEntity = QueueMetricMapper.toEntity(metric);
-            service.ingest(eventEntity);
-            ack.acknowledge();
+            boolean offered = batchQueueService.enqueueMetric(metric);
+            if (offered)
+                ack.acknowledge();
+            else
+                log.warn("Metric queue full/timed out, not acknowledging: {}", metric);
         } catch (Exception ex) {
-            log.error("Failed to ingest Queue Metric event: {}", metric, ex);
-            // no ack → retry
+            log.error("Failed to enqueue Queue Metric event: {}", metric, ex);
         }
     }
 }

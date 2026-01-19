@@ -1,6 +1,6 @@
 package com.pms.rttm.consumer;
 
-import com.pms.rttm.service.RttmIngestService;
+import com.pms.rttm.service.BatchQueueService;
 import com.pms.rttm.entity.RttmErrorEventEntity;
 import com.pms.rttm.entity.RttmTradeEventEntity;
 import com.pms.rttm.mapper.ErrorEventMapper;
@@ -18,16 +18,20 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class TradeEventConsumer {
 
-    private final RttmIngestService service;
+    private final BatchQueueService batchQueueService;
 
     @KafkaListener(topics = "rttm.trade.events", containerFactory = "tradeEventListenerFactory")
     public void consume(RttmTradeEvent event, Acknowledgment ack) {
         try {
-            RttmTradeEventEntity eventEntity = TradeEventMapper.toEntity(event);
-            service.ingest(eventEntity);
-            ack.acknowledge();
+            // enqueue into in-memory queue; only ack if enqueue succeeded
+            boolean offered = batchQueueService.enqueueTrade(event);
+            if (offered) {
+                ack.acknowledge();
+            } else {
+                log.warn("Trade queue is full or timed out, not acknowledging Kafka message: {}", event);
+            }
         } catch (Exception ex) {
-            log.error("Failed to ingest RTTM Trade event: {}", event, ex);
+            log.error("Failed to enqueue RTTM Trade event: {}", event, ex);
             // no ack → retry
         }
     }
