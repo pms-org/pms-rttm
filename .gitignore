@@ -41,3 +41,4 @@ build/
 docker/data
 
 .github/copilot-instructions.md
+rttm_trade_events.csv
