@@ -60,13 +60,13 @@ services:
 
         echo 'Creating RTTM topics...';
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.trade.events --partitions 48 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.trade.events --partitions 6 --replication-factor 1;
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.queue.metrics --partitions 12 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.queue.metrics --partitions 6 --replication-factor 1;
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.error.events --partitions 24 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.error.events --partitions 6 --replication-factor 1;
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.dlq.events --partitions 12 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.dlq.events --partitions 6 --replication-factor 1;
 
         kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.service.heartbeat --partitions 6 --replication-factor 1;
 
