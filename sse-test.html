@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSE Test</title>
+</head>
+<body>
+    <h1>RTTM Server-Sent Events Test</h1>
+    <div id="status"></div>
+    <div id="messages"></div>
+
+    <script>
+        const status = document.getElementById('status');
+        const messages = document.getElementById('messages');
+
+        // Test metrics SSE
+        const metricsSource = new EventSource('http://localhost:8085/api/rttm/metrics/stream');
+        
+        metricsSource.onopen = () => {
+            status.innerHTML += '<p>✅ Metrics SSE connected</p>';
+        };
+        
+        metricsSource.onmessage = (event) => {
+            messages.innerHTML += `<p><strong>Metrics:</strong> ${event.data}</p>`;
+        };
+        
+        metricsSource.onerror = (error) => {
+            status.innerHTML += '<p>❌ Metrics SSE error</p>';
+        };
+
+        // Test pipeline SSE
+        const pipelineSource = new EventSource('http://localhost:8085/api/rttm/pipeline/stream');
+        
+        pipelineSource.onopen = () => {
+            status.innerHTML += '<p>✅ Pipeline SSE connected</p>';
+        };
+        
+        pipelineSource.onmessage = (event) => {
+            messages.innerHTML += `<p><strong>Pipeline:</strong> ${event.data}</p>`;
+        };
+        
+        pipelineSource.onerror = (error) => {
+            status.innerHTML += '<p>❌ Pipeline SSE error</p>';
+        };
+    </script>
+</body>
+</html>

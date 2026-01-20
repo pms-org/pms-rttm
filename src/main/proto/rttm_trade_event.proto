@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package com.pms.rttm.proto;
+
+option java_package = "com.pms.rttm.proto";
+option java_multiple_files = true;
+
+message RttmTradeEvent {
+
+  // ===============================
+  // Trade identity
+  // ===============================
+  string trade_id = 1;
+  string service_name = 2;
+
+  // ===============================
+  // Event semantics
+  // ===============================
+  string event_type = 3;     // RECEIVED / CONSUMED / PRODUCED / FAILED / ACKED
+  string event_stage = 4;    // RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
+  string event_status = 5;   // SUCCESS / FAILED / RETRY / DLQ
+
+  // ===============================
+  // Kafka / Queue metadata
+  // ===============================
+  string source_queue = 6;
+  string target_queue = 7;
+  string topic_name = 8;
+  string consumer_group = 9;
+  int32 partition_id = 10;
+  int64 offset_value = 11;
+
+  // ===============================
+  // Timing & context
+  // ===============================
+  int64 event_time = 12;     // epoch millis
+  string message = 13;
+}

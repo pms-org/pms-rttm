@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+**/*.zip
+
 ### STS ###
 .apt_generated
 .classpath
@@ -38,4 +40,5 @@ build/
 
 docker/data
 
-notes/
+.github/copilot-instructions.md
+rttm_trade_events.csv

@@ -14,28 +14,37 @@ spring:
       
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true    
         dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP}
     consumer:
-      group-id: pms-rttm-group
-      auto-offset-reset: earliest
-      enable-auto-commit: false
-      max-poll-records: 100
+      group-id: ${KAFKA_CONSUMER_GROUP_ID}
 
 schema:
   registry:
-    url: ${SCHEMA_REGISTRY_URL:http://localhost:8081}
+    url: ${SCHEMA_REGISTRY_URL}
 
 server:
-  port: 8080  
+  port: ${SERVER_PORT}  
 
 
 logging:
   level:
     com.pms.rttm: DEBUG
+
+# RTTM batching and queue settings
+rttm:
+  batch:
+    size: ${RTTM_BATCH_SIZE:100}
+    poll-ms: ${RTTM_BATCH_POLL_MS:2000}
+  queue:
+    capacity: ${RTTM_QUEUE_CAPACITY:10000}
+  consumer:
+    concurrency: ${RTTM_CONSUMER_CONCURRENCY:3}
+  fetch:
+    max-wait-ms: ${RTTM_FETCH_MAX_WAIT_MS:3000}

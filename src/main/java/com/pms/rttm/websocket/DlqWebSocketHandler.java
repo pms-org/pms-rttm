@@ -1,67 +1,77 @@
 package com.pms.rttm.websocket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pms.rttm.service.StatsService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.*;
-import java.util.concurrent.CopyOnWriteArraySet;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pms.rttm.dto.DlqOverview;
+import com.pms.rttm.service.DlqMetricsService;
+import com.pms.rttm.enums.EventStage;
 
-@Component
-@RequiredArgsConstructor
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+
 @Slf4j
-public class DlqWebSocketHandler implements WebSocketHandler {
+@Component
+public class DlqWebSocketHandler extends TextWebSocketHandler {
 
-    private final StatsService statsService;
-    private final ObjectMapper objectMapper;
-    private final CopyOnWriteArraySet<WebSocketSession> sessions = new CopyOnWriteArraySet<>();
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    @Override
-    public void afterConnectionEstablished(WebSocketSession session) {
-        sessions.add(session);
-        log.info("DLQ WebSocket connection established: {}", session.getId());
-    }
+    @Autowired
+    private DlqMetricsService dlqService;
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        sessions.remove(session);
-        log.info("DLQ WebSocket connection closed: {}", session.getId());
-    }
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        ScheduledFuture<?> future = scheduler.scheduleAtFixedRate(() -> {
+            try {
+                long total = dlqService.totalDlq();
 
-    @Scheduled(fixedRate = 5000)
-    public void broadcastDlqStats() {
-        if (sessions.isEmpty()) return;
-        
-        try {
-            var dlqStats = statsService.getDlqStats();
-            String message = objectMapper.writeValueAsString(dlqStats);
-            
-            sessions.removeIf(session -> {
-                try {
-                    session.sendMessage(new TextMessage(message));
-                    return false;
-                } catch (Exception e) {
-                    log.warn("Failed to send DLQ message to session {}", session.getId());
-                    return true;
+                Map<String, Long> byStage = dlqService.dlqByStage().entrySet().stream()
+                        .collect(Collectors.toMap(e -> e.getKey().name(), Map.Entry::getValue));
+
+                DlqOverview overview = new DlqOverview(total, byStage);
+                String json = objectMapper.writeValueAsString(overview);
+                if (session.isOpen()) {
+                    session.sendMessage(new TextMessage(json));
                 }
-            });
-        } catch (Exception e) {
-            log.error("Error broadcasting DLQ stats", e);
+            } catch (Exception e) {
+                log.error("Error sending DLQ overview websocket message", e);
+                try {
+                    if (session.isOpen()) {
+                        DlqOverview fallback = new DlqOverview(0L, new HashMap<>());
+                        session.sendMessage(new TextMessage(objectMapper.writeValueAsString(fallback)));
+                    }
+                } catch (Exception ex) {
+                    log.error("Failed to send DLQ fallback", ex);
+                }
+            }
+        }, 0, 3, TimeUnit.SECONDS);
+
+        session.getAttributes().put("telemetryFuture", future);
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status)
+            throws Exception {
+        Object f = session.getAttributes().get("telemetryFuture");
+        if (f instanceof ScheduledFuture) {
+            try {
+                ((ScheduledFuture<?>) f).cancel(true);
+            } catch (Exception e) {
+                log.warn("Failed to cancel DLQ telemetry future for closed session", e);
+            }
         }
-    }
-
-    @Override
-    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {}
-
-    @Override
-    public void handleTransportError(WebSocketSession session, Throwable exception) {
-        sessions.remove(session);
-    }
-
-    @Override
-    public boolean supportsPartialMessages() {
-        return false;
+        super.afterConnectionClosed(session, status);
     }
 }

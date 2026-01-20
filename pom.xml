@@ -143,7 +143,7 @@
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>3.25.0</version>
+            <version>3.25.5</version>
         </dependency>
 
         <!-- Kafka Protobuf Serializer -->
@@ -214,7 +214,7 @@
                 <version>0.6.1</version>
 
                 <configuration>
-                    <protocArtifact>com.google.protobuf:protoc:3.25.0:exe:${os.detected.classifier}</protocArtifact>
+                    <protocArtifact>com.google.protobuf:protoc:3.25.5:exe:${os.detected.classifier}</protocArtifact>
                 </configuration>
 
                 <executions>

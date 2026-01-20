@@ -1,0 +1,14 @@
+services:
+  rttm-all-in-one:
+    build:
+      context: .
+      dockerfile: Dockerfile.websocket
+    container_name: rttm-all-in-one
+    env_file: 
+      - .env.prod
+    ports:
+      - "8085:8080"
+      - "9092:9092"
+    # - "6379:6379"
+    volumes:
+      - ./data:/data
