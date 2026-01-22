@@ -25,6 +25,11 @@ spring:
     consumer:
       group-id: ${KAFKA_CONSUMER_GROUP_ID}
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
 schema:
   registry:
     url: ${SCHEMA_REGISTRY_URL}
