@@ -37,8 +37,6 @@ public class TelemetrySnapshotController {
     private final TpsMetricsService tpsMetricsService;
     private final LatencyMetricsService latencyMetricsService;
     private final KafkaLagService kafkaLagService;
-    private final DlqMetricsService dlqMetricsService;
-    private final PipelineDepthService pipelineDepthService;
 
     @GetMapping("/telemetry-snapshot")
     public ResponseEntity<RttmAnalysisData> telemetrySnapshot() {

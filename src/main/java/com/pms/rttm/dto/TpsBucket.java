@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.sql.Timestamp;
 
 @Data
 public class TpsBucket {
@@ -25,7 +26,7 @@ public class TpsBucket {
         } else if (bucketTime instanceof LocalDateTime ldt) {
             // date_trunc usually loses the offset, so we assume UTC or system default
             this.bucketTime = ldt.toInstant(ZoneOffset.UTC);
-        } else if (bucketTime instanceof java.sql.Timestamp ts) {
+        } else if (bucketTime instanceof Timestamp ts) {
             this.bucketTime = ts.toInstant();
         } else if (bucketTime instanceof Instant inst) {
             this.bucketTime = inst;

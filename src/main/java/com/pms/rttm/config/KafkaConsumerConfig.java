@@ -40,18 +40,4 @@ public class KafkaConsumerConfig {
         return props;
     }
 
-    // @Bean
-    // public ConcurrentKafkaListenerContainerFactory<String,
-    // RttmEventProto.RttmEvent> tradeEventKafkaListenerFactory() {
-
-    // ConcurrentKafkaListenerContainerFactory<String, RttmEventProto.RttmEvent>
-    // factory = new ConcurrentKafkaListenerContainerFactory<>();
-
-    // factory.setConsumerFactory(tradeEventConsumerFactory());
-    // factory.setConcurrency(3);
-    // factory.getContainerProperties().setAckMode(AckMode.MANUAL);
-    // factory.getContainerProperties().setPollTimeout(5000);
-    // return factory;
-    // }
-
 }

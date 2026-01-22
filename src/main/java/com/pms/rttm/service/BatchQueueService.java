@@ -24,11 +24,6 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-/**
- * In-memory queue service using BlockingQueues and scheduled batch processors.
- * Note: in-memory only — messages will be lost on process restart. This follows
- * the user's request.
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -36,23 +31,19 @@ public class BatchQueueService {
 
     private final RttmIngestService ingestService;
 
-    // capacities and batch sizes configurable
     @Value("${rttm.queue.capacity:10000}")
     private int queueCapacity;
 
     @Value("${rttm.batch.size:100}")
     private int batchSize;
 
-    // queues
     private final LinkedBlockingQueue<RttmTradeEvent> tradeQueue = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<RttmErrorEvent> errorQueue = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<RttmQueueMetric> metricQueue = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<RttmDlqEvent> dlqQueue = new LinkedBlockingQueue<>();
 
-    /**
-     * Enqueue helpers used by consumers. Offer with timeout to avoid blocking
-     * consumer threads.
-     */
+    // Enqueue helpers used by consumers. Offer with timeout to avoid blocking
+    // consumer threads.
     public boolean enqueueTrade(RttmTradeEvent event) throws InterruptedException {
         return tradeQueue.offer(event, 500, TimeUnit.MILLISECONDS);
     }

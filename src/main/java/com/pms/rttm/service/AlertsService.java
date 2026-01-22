@@ -19,9 +19,7 @@ public class AlertsService {
 
     private final RttmAlertRepository alertRepository;
 
-    /**
-     * Fetch latest alerts by status (e.g. ACTIVE). Maps to Alert DTO.
-     */
+    // Fetch latest alerts by status (e.g. ACTIVE). Maps to Alert DTO.
     public List<Alert> latestByStatus(String status, int limit) {
         Pageable p = PageRequest.of(0, Math.max(1, limit));
         List<RttmAlertEntity> rows = alertRepository.findByStatusOrderByTriggeredTimeDesc(status, p);
