@@ -11,7 +11,6 @@ services:
 
     volumes:
       - kafka-data:/var/lib/kafka/data
-
     environment:
       # ---- KRaft ----
       KAFKA_PROCESS_ROLES: "broker,controller"
@@ -60,17 +59,17 @@ services:
 
         echo 'Creating RTTM topics...';
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.trade.events --partitions 6 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.trade.events --partitions 2 --replication-factor 1;
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.queue.metrics --partitions 6 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.queue.metrics --partitions 2 --replication-factor 1;
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.error.events --partitions 6 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.error.events --partitions 2 --replication-factor 1;
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.dlq.events --partitions 6 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.dlq.events --partitions 2 --replication-factor 1;
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.service.heartbeat --partitions 6 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.service.heartbeat --partitions 2 --replication-factor 1;
 
-        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.alert.events --partitions 6 --replication-factor 1;
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic rttm.alert.events --partitions 2 --replication-factor 1;
 
         echo 'Kafka ready.';
         wait
