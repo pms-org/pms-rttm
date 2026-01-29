@@ -26,6 +26,6 @@ COPY --from=builder /app/target/pms-rttm-*.jar app.jar
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
 # Expose Port
-EXPOSE 8085
+EXPOSE 8087
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
