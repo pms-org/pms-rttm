@@ -1,3 +1,5 @@
 TODO: 1. Write algorithm / logics for creating and saving alerts into DB during application runtime when things go above certain threshold. 
 TODO: 1.1 WRITE logic for latency computation
 TODO: make ws handlers to send only unsent data instead of just polling DB and sending everythings
+TODO: Remove ANALYZED state in EventStage after consultation
+TODO: Send data/metrics on Per Day Basis, not seconds basis. 
