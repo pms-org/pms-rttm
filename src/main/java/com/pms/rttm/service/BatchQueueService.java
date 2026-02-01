@@ -35,6 +35,7 @@ public class BatchQueueService {
 
     private final RttmIngestService ingestService;
     private final StageLatencyComputationService latencyService;
+    private final QueueMetricAggregationService aggregationService;
 
     private static final int MAX_RETRIES = 3;
 
@@ -167,15 +168,26 @@ public class BatchQueueService {
             if (items.isEmpty())
                 return;
 
-            List<RttmQueueMetricEntity> entities = new ArrayList<>(items.size());
-            for (RttmQueueMetric e : items)
-                entities.add(QueueMetricMapper.toEntity(e));
+            List<RttmQueueMetricEntity> entitiesToStore = new ArrayList<>();
+            for (RttmQueueMetric e : items) {
+                RttmQueueMetricEntity entity = QueueMetricMapper.toEntity(e);
+
+                // Only store if lag changed significantly or time elapsed
+                if (aggregationService.shouldStore(entity)) {
+                    entitiesToStore.add(entity);
+                }
+            }
+
+            if (entitiesToStore.isEmpty()) {
+                log.debug("All {} queue metrics filtered out by aggregation", items.size());
+                return;
+            }
 
             try {
-                ingestService.ingestBatchQueueMetrics(entities);
-                log.info("Saved queue-metric batch of {}", entities.size());
+                ingestService.ingestBatchQueueMetrics(entitiesToStore);
+                log.info("Saved {} queue metrics (filtered from {})", entitiesToStore.size(), items.size());
             } catch (Exception ex) {
-                log.error("DB save failed for queue-metric batch, re-queueing {} items", entities.size(), ex);
+                log.error("DB save failed for queue-metric batch, re-queueing {} items", entitiesToStore.size(), ex);
                 for (RttmQueueMetric r : items) {
                     String eventKey = r.getServiceName() + "-" + r.getTopicName();
                     int retries = metricRetryCount.getOrDefault(eventKey, 0);

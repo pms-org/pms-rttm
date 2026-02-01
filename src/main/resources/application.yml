@@ -8,6 +8,13 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+
   docker:
     compose:
       enabled: false
@@ -56,6 +63,14 @@ rttm:
     concurrency: ${RTTM_CONSUMER_CONCURRENCY:3}
   fetch:
     max-wait-ms: ${RTTM_FETCH_MAX_WAIT_MS:3000}
+  
+  # Queue metrics retention and aggregation (reduces massive data growth)
+  queue-metrics:
+    retention-hours: ${RTTM_QUEUE_METRICS_RETENTION_HOURS:48}      # Keep last 48 hours in DB
+    cleanup-cron: ${RTTM_QUEUE_METRICS_CLEANUP_CRON:0 0 2 * * ?}   # Daily DB cleanup at 2 AM
+    aggregation-threshold: ${RTTM_QUEUE_METRICS_AGG_THRESHOLD:0.1} # Store if lag changes >10%
+    min-interval-minutes: ${RTTM_QUEUE_METRICS_MIN_INTERVAL:5}     # Or 5 minutes elapsed
+    cache-ttl-hours: ${RTTM_QUEUE_METRICS_CACHE_TTL_HOURS:24}      # Redis TTL (auto-expires old entries)
   
   # Alert generation thresholds
   alerts:

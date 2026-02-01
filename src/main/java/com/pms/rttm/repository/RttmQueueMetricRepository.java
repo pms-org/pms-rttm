@@ -2,6 +2,7 @@ package com.pms.rttm.repository;
 
 import com.pms.rttm.entity.RttmQueueMetricEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -82,4 +83,12 @@ public interface RttmQueueMetricRepository
 				WHERE q.snapshotTime >= :since
 			""")
 	Long findMaxQueueDepthSince(@Param("since") Instant since);
+
+	/**
+	 * Delete old queue metrics beyond retention window.
+	 * Used by cleanup service to prevent database bloat.
+	 */
+	@Modifying
+	@Query("DELETE FROM RttmQueueMetricEntity q WHERE q.snapshotTime < :cutoff")
+	int deleteBySnapshotTimeBefore(@Param("cutoff") Instant cutoff);
 }
