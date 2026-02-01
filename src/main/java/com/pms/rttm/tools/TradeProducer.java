@@ -7,108 +7,133 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
 import java.time.Instant;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Future;
 
 /**
- * Simple producer that sends N RttmTradeEvent protobuf messages to topic
- * rttm.trade.events.
+ * Enhanced producer that sends complete trade lifecycle events (RECEIVED →
+ * VALIDATED → ENRICHED → COMMITTED → ANALYZED)
+ * for testing stage latency computation and alert generation.
+ * 
+ * Usage:
  * set KAFKA_BOOTSTRAP=localhost:9092
  * set SCHEMA_REGISTRY_URL=http://localhost:8081
  * mvn compile exec:java -Dexec.mainClass=com.pms.rttm.tools.TradeProducer
+ * -Dexec.args="5"
  */
 public class TradeProducer {
 
-    public static void main(String[] args) throws Exception {
-        String bootstrap = System.getenv().getOrDefault("KAFKA_BOOTSTRAP", "localhost:9092");
-        String schemaRegistry = System.getenv().getOrDefault("SCHEMA_REGISTRY_URL", "http://localhost:8081");
-        String topic = "rttm.trade.events";
-        int count = 10;
-        if (args.length > 0) {
-            count = Integer.parseInt(args[0]);
-        }
-
-        Properties props = new Properties();
-        props.put("bootstrap.servers", bootstrap);
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        // Use Confluent Protobuf serializer for the value
-        props.put("value.serializer", KafkaProtobufSerializer.class.getName());
-        props.put("schema.registry.url", schemaRegistry);
-
-        // Optional: register as latest or use subject naming strategy if needed.
-        // props.put("auto.register.schemas", true);
-
-        // Hardcoded dataset rows (based on rttm_trade_events.csv). Each entry:
-        // {tradeId, consumerGroup, eventStage, eventStatus, eventType, message, offset,
-        // partition, serviceName, sourceQueue, targetQueue, topicName}
-        String[][] rows = new String[][] {
-                { "a2c04c8f-aa0b-4f6d-bd56-f103f612fcc1", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1000", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" },
-                { "2437b8ca-5d13-428d-b6ea-85fa5647d86e", "cg-validate", "VALIDATED", "SUCCESS", "TRADE_VALIDATED",
-                        "Trade validated", "2000", "1", "trade-validator", "trade.validate", "trade.enrich",
-                        "trades.validated" },
-                { "a5ffcea6-31c6-4c10-977d-aa4965d82902", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1002", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" },
-                { "4a4b1542-d438-4d7d-86d3-8119f25566d2", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1003", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" },
-                { "2b871eed-c638-436b-8d17-8f98bd64b1ec", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1004", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" },
-                { "2e68899f-7b7c-4284-8195-4b2531491d94", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1005", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" },
-                { "9054be3a-2912-4360-808f-6421a44500a6", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1006", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" },
-                { "4970a661-8d82-449a-8aa2-4a39f18786ae", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1007", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" },
-                { "3722ed60-07a8-4f64-b9c0-faf2d00ef194", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1008", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" },
-                { "e75447ad-0a05-4c79-b54c-25d5d94d115b", "cg-ingest", "RECEIVED", "SUCCESS", "TRADE_RECEIVED",
-                        "Trade received", "1009", "0", "trade-ingest", "trade.in", "trade.validate", "trades.raw" }
+        // Valid portfolio IDs from validation test data
+        private static final String[] PORTFOLIO_IDS = {
+                        "b23d70cf-6d7a-48b5-8e8c-4eda8f4d611d",
+                        "7839ee86-6527-43ed-94d6-53dadda2bd9a",
+                        "7d08a041-6aed-421c-b895-1d94d4401b79",
+                        "7ecae4ee-a6df-4237-8e9a-5e4a5e417fa3",
+                        "8deeeb23-8862-4e29-8626-e538dddd868f",
+                        "a1d62557-221d-4799-bfba-4d7215dcdac3",
+                        "b94926b8-4919-4279-8470-1f3ec5b1b0fc",
+                        "ca7377ab-2596-47a3-9c3d-4089206fa3de",
+                        "d3a485c8-3e2f-4fa3-a823-254748942200",
+                        "e9fc6225-6845-4c91-815f-ba3e9ea06e21"
         };
 
-        try (KafkaProducer<String, RttmTradeEvent> producer = new KafkaProducer<>(props)) {
-            int toSend = Math.min(count, rows.length);
-            long now = Instant.now().toEpochMilli();
-            for (int i = 0; i < toSend; i++) {
-                String[] r = rows[i];
-                String tradeId = r[0];
-                String consumerGroup = r[1];
-                String eventStage = r[2];
-                String eventStatus = r[3];
-                String eventType = r[4];
-                String message = r[5];
-                long offsetValue = Long.parseLong(r[6]);
-                int partitionId = Integer.parseInt(r[7]);
-                String serviceName = r[8];
-                String sourceQueue = r[9];
-                String targetQueue = r[10];
-                String topicName = r[11];
+        // Valid stock symbols from validation test data
+        private static final String[] STOCKS = {
+                        "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "NFLX",
+                        "AMD", "INTC", "IBM", "ORCL", "BAC", "JPM", "WMT"
+        };
 
-                RttmTradeEvent msg = RttmTradeEvent.newBuilder()
-                        .setTradeId(UUID.randomUUID().toString())
-                        .setServiceName(serviceName)
-                        .setEventType(eventType)
-                        .setEventStage(eventStage)
-                        .setEventStatus(eventStatus)
-                        .setSourceQueue(sourceQueue)
-                        .setTargetQueue(targetQueue)
-                        .setTopicName(topicName)
-                        .setConsumerGroup(consumerGroup)
-                        .setPartitionId(partitionId)
-                        .setOffsetValue(offsetValue)
-                        .setEventTime(now + i * 1000)
-                        .setMessage(message + " " + (i + 1))
-                        .build();
+        // Pipeline stages in order mapped to actual services
+        private static final String[][] STAGES = {
+                        { "RECEIVED", "TRADE_RECEIVED", "Trade received", "pms-trade-capture", "cg-ingest", "trade.in",
+                                        "trade.validate", "trades.raw" },
+                        { "VALIDATED", "TRADE_VALIDATED", "Trade validated", "pms-validation", "cg-validate",
+                                        "trade.validate", "trade.enrich", "trades.validated" },
+                        { "ENRICHED", "TRADE_ENRICHED", "Trade enriched", "pms-transactional", "cg-enrich",
+                                        "trade.enrich",
+                                        "trade.commit", "trades.enriched" },
+                        { "COMMITTED", "TRADE_COMMITTED", "Trade committed", "pms-transactional", "cg-commit",
+                                        "trade.commit", "trade.analyze", "trades.committed" },
+                        { "ANALYZED", "TRADE_ANALYZED", "Trade analyzed", "pms-analytics", "cg-analyze",
+                                        "trade.analyze", "trade.complete", "trades.analyzed" }
+        };
 
-                ProducerRecord<String, RttmTradeEvent> record = new ProducerRecord<>(topic, tradeId, msg);
-                Future<RecordMetadata> f = producer.send(record);
-                RecordMetadata meta = f.get(); // wait for send
-                System.out.printf("Sent msg#%d => topic=%s partition=%d offset=%d%n",
-                        i + 1, meta.topic(), meta.partition(), meta.offset());
-            }
-            producer.flush();
+        public static void main(String[] args) throws Exception {
+                String bootstrap = System.getenv().getOrDefault("KAFKA_BOOTSTRAP", "localhost:9092");
+                String schemaRegistry = System.getenv().getOrDefault("SCHEMA_REGISTRY_URL", "http://localhost:8081");
+                String topic = "rttm.trade.events";
+                int tradeCount = 5;
+
+                if (args.length > 0) {
+                        tradeCount = Integer.parseInt(args[0]);
+                }
+
+                Properties props = new Properties();
+                props.put("bootstrap.servers", bootstrap);
+                props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+                props.put("value.serializer", KafkaProtobufSerializer.class.getName());
+                props.put("schema.registry.url", schemaRegistry);
+
+                Random random = new Random();
+
+                try (KafkaProducer<String, RttmTradeEvent> producer = new KafkaProducer<>(props)) {
+                        System.out.printf("Sending %d complete trade lifecycles (each with 5 stages)...%n", tradeCount);
+
+                        for (int tradeNum = 0; tradeNum < tradeCount; tradeNum++) {
+                                String tradeId = UUID.randomUUID().toString();
+                                String portfolioId = PORTFOLIO_IDS[random.nextInt(PORTFOLIO_IDS.length)];
+                                String stock = STOCKS[random.nextInt(STOCKS.length)];
+                                long baseTime = Instant.now().toEpochMilli();
+
+                                System.out.printf("%nTrade #%d: %s (Portfolio: %s, Stock: %s)%n",
+                                                tradeNum + 1, tradeId.substring(0, 8), portfolioId.substring(0, 8),
+                                                stock);
+
+                                for (int stageIdx = 0; stageIdx < STAGES.length; stageIdx++) {
+                                        String[] stage = STAGES[stageIdx];
+                                        String eventStage = stage[0];
+                                        String eventType = stage[1];
+                                        String message = stage[2] + " for " + stock;
+                                        String serviceName = stage[3];
+                                        String consumerGroup = stage[4];
+                                        String sourceQueue = stage[5];
+                                        String targetQueue = stage[6];
+                                        String topicName = stage[7];
+
+                                        // Latency between stages: 50-300ms to trigger alerts
+                                        long stageLatency = 50 + random.nextInt(250);
+                                        long eventTime = baseTime + (stageIdx * stageLatency);
+
+                                        RttmTradeEvent msg = RttmTradeEvent.newBuilder()
+                                                        .setTradeId(tradeId)
+                                                        .setServiceName(serviceName)
+                                                        .setEventType(eventType)
+                                                        .setEventStage(eventStage)
+                                                        .setEventStatus("SUCCESS")
+                                                        .setSourceQueue(sourceQueue)
+                                                        .setTargetQueue(targetQueue)
+                                                        .setTopicName(topicName)
+                                                        .setConsumerGroup(consumerGroup)
+                                                        .setPartitionId(random.nextInt(3))
+                                                        .setOffsetValue(1000 + tradeNum * 10 + stageIdx)
+                                                        .setEventTime(eventTime)
+                                                        .setMessage(message)
+                                                        .build();
+
+                                        ProducerRecord<String, RttmTradeEvent> record = new ProducerRecord<>(topic,
+                                                        tradeId, msg);
+                                        Future<RecordMetadata> f = producer.send(record);
+                                        RecordMetadata meta = f.get();
+
+                                        System.out.printf("  [OK] %s (latency: %dms) => offset=%d%n",
+                                                        eventStage, stageLatency, meta.offset());
+
+                                        Thread.sleep(10);
+                                }
+                        }
+                        producer.flush();
+                        System.out.printf("%n[DONE] Sent %d trades x 5 stages = %d total events%n",
+                                        tradeCount, tradeCount * 5);
+                }
         }
-
-        System.out.println("Done sending messages.");
-    }
 }

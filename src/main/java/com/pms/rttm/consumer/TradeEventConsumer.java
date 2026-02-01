@@ -1,6 +1,7 @@
 package com.pms.rttm.consumer;
 
 import com.pms.rttm.service.BatchQueueService;
+import com.pms.rttm.config.KafkaTopicsProperties;
 import com.pms.rttm.entity.RttmErrorEventEntity;
 import com.pms.rttm.entity.RttmTradeEventEntity;
 import com.pms.rttm.mapper.ErrorEventMapper;
@@ -19,8 +20,9 @@ import org.springframework.stereotype.Component;
 public class TradeEventConsumer {
 
     private final BatchQueueService batchQueueService;
+    private final KafkaTopicsProperties kafkaTopicsProperties;
 
-    @KafkaListener(topics = "rttm.trade.events", containerFactory = "tradeEventListenerFactory")
+    @KafkaListener(topics = "#{kafkaTopicsProperties.tradeEvents}", containerFactory = "tradeEventListenerFactory")
     public void consume(RttmTradeEvent event, Acknowledgment ack) {
         try {
             // enqueue into in-memory queue; only ack if enqueue succeeded

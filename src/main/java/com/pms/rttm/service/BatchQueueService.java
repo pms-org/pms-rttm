@@ -18,9 +18,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 public class BatchQueueService {
 
     private final RttmIngestService ingestService;
+    private final StageLatencyComputationService latencyService;
+
+    private static final int MAX_RETRIES = 3;
 
     @Value("${rttm.queue.capacity:10000}")
     private int queueCapacity;
@@ -42,8 +49,11 @@ public class BatchQueueService {
     private final LinkedBlockingQueue<RttmQueueMetric> metricQueue = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<RttmDlqEvent> dlqQueue = new LinkedBlockingQueue<>();
 
-    // Enqueue helpers used by consumers. Offer with timeout to avoid blocking
-    // consumer threads.
+    private final Map<String, Integer> tradeRetryCount = new ConcurrentHashMap<>();
+    private final Map<String, Integer> errorRetryCount = new ConcurrentHashMap<>();
+    private final Map<String, Integer> metricRetryCount = new ConcurrentHashMap<>();
+    private final Map<String, Integer> dlqRetryCount = new ConcurrentHashMap<>();
+
     public boolean enqueueTrade(RttmTradeEvent event) throws InterruptedException {
         return tradeQueue.offer(event, 500, TimeUnit.MILLISECONDS);
     }
@@ -60,8 +70,6 @@ public class BatchQueueService {
         return dlqQueue.offer(event, 500, TimeUnit.MILLISECONDS);
     }
 
-    // Scheduled processors. Each drains up to batchSize and calls appropriate batch
-    // ingest.
     @Scheduled(fixedDelayString = "${rttm.batch.poll-ms:2000}")
     public void processTradeBatch() {
         try {
@@ -71,21 +79,38 @@ public class BatchQueueService {
                 return;
 
             List<RttmTradeEventEntity> entities = new ArrayList<>(items.size());
-            for (RttmTradeEvent e : items)
-                entities.add(TradeEventMapper.toEntity(e));
+            Set<UUID> tradeIds = new HashSet<>();
+
+            for (RttmTradeEvent e : items) {
+                RttmTradeEventEntity entity = TradeEventMapper.toEntity(e);
+                entities.add(entity);
+                tradeIds.add(entity.getTradeId());
+            }
 
             try {
                 ingestService.ingestBatch(entities);
-                log.info("Saved trade batch of {}", entities.size());
+                log.info("Saved {} trades", entities.size());
+
+                if (!tradeIds.isEmpty()) {
+                    latencyService.computeAndSaveLatenciesBatch(tradeIds);
+                }
             } catch (Exception ex) {
-                log.error("DB save failed for trade batch, re-queueing {} items", entities.size(), ex);
-                // re-queue attempts — put back in queue (best-effort)
+                log.error("Trade batch save failed, re-queueing {} items", entities.size(), ex);
                 for (RttmTradeEvent r : items) {
-                    try {
-                        tradeQueue.put(r);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
+                    String eventKey = r.getTradeId();
+                    int retries = tradeRetryCount.getOrDefault(eventKey, 0);
+
+                    if (retries < MAX_RETRIES) {
+                        tradeRetryCount.put(eventKey, retries + 1);
+                        try {
+                            tradeQueue.put(r);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    } else {
+                        log.error("Max retries ({}) exceeded for trade event: {}, discarding", MAX_RETRIES, eventKey);
+                        tradeRetryCount.remove(eventKey);
                     }
                 }
             }
@@ -112,11 +137,20 @@ public class BatchQueueService {
             } catch (Exception ex) {
                 log.error("DB save failed for error batch, re-queueing {} items", entities.size(), ex);
                 for (RttmErrorEvent r : items) {
-                    try {
-                        errorQueue.put(r);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
+                    String eventKey = r.getTradeId();
+                    int retries = errorRetryCount.getOrDefault(eventKey, 0);
+
+                    if (retries < MAX_RETRIES) {
+                        errorRetryCount.put(eventKey, retries + 1);
+                        try {
+                            errorQueue.put(r);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    } else {
+                        log.error("Max retries ({}) exceeded for error event: {}, discarding", MAX_RETRIES, eventKey);
+                        errorRetryCount.remove(eventKey);
                     }
                 }
             }
@@ -143,11 +177,20 @@ public class BatchQueueService {
             } catch (Exception ex) {
                 log.error("DB save failed for queue-metric batch, re-queueing {} items", entities.size(), ex);
                 for (RttmQueueMetric r : items) {
-                    try {
-                        metricQueue.put(r);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
+                    String eventKey = r.getServiceName() + "-" + r.getTopicName();
+                    int retries = metricRetryCount.getOrDefault(eventKey, 0);
+
+                    if (retries < MAX_RETRIES) {
+                        metricRetryCount.put(eventKey, retries + 1);
+                        try {
+                            metricQueue.put(r);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    } else {
+                        log.error("Max retries ({}) exceeded for metric event: {}, discarding", MAX_RETRIES, eventKey);
+                        metricRetryCount.remove(eventKey);
                     }
                 }
             }
@@ -174,11 +217,20 @@ public class BatchQueueService {
             } catch (Exception ex) {
                 log.error("DB save failed for dlq batch, re-queueing {} items", entities.size(), ex);
                 for (RttmDlqEvent r : items) {
-                    try {
-                        dlqQueue.put(r);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        break;
+                    String eventKey = r.getTradeId();
+                    int retries = dlqRetryCount.getOrDefault(eventKey, 0);
+
+                    if (retries < MAX_RETRIES) {
+                        dlqRetryCount.put(eventKey, retries + 1);
+                        try {
+                            dlqQueue.put(r);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    } else {
+                        log.error("Max retries ({}) exceeded for dlq event: {}, discarding", MAX_RETRIES, eventKey);
+                        dlqRetryCount.remove(eventKey);
                     }
                 }
             }

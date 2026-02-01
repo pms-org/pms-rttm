@@ -1,6 +1,7 @@
 package com.pms.rttm.consumer;
 
 import com.pms.rttm.service.BatchQueueService;
+import com.pms.rttm.config.KafkaTopicsProperties;
 import com.pms.rttm.entity.RttmDlqEventEntity;
 import com.pms.rttm.entity.RttmTradeEventEntity;
 import com.pms.rttm.mapper.DlqEventMapper;
@@ -18,8 +19,9 @@ import org.springframework.stereotype.Component;
 public class DlqEventConsumer {
 
     private final BatchQueueService batchQueueService;
+    private final KafkaTopicsProperties kafkaTopicsProperties;
 
-    @KafkaListener(topics = "rttm.dlq.events", containerFactory = "dlqListenerFactory")
+    @KafkaListener(topics = "#{kafkaTopicsProperties.dlqEvents}", containerFactory = "dlqListenerFactory")
     public void consume(RttmDlqEvent event, Acknowledgment ack) {
 
         try {

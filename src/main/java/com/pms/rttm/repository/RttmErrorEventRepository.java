@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+
 @Repository
 public interface RttmErrorEventRepository
                 extends JpaRepository<RttmErrorEventEntity, Long> {
@@ -17,4 +19,6 @@ public interface RttmErrorEventRepository
                             WHERE e.eventStage = :stage
                         """)
         long countByStage(@Param("stage") EventStage stage);
+
+        long countByEventTimeAfter(Instant time);
 }

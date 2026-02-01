@@ -3,8 +3,10 @@ package com.pms.rttm.repository;
 import com.pms.rttm.entity.RttmQueueMetricEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -72,4 +74,12 @@ public interface RttmQueueMetricRepository
 						r -> ((Number) r[1]).longValue(),
 						(oldV, newV) -> oldV + newV));
 	}
+
+	// Max queue depth since a given time (for alert generation)
+	@Query("""
+				SELECT COALESCE(MAX(q.producedOffset - q.consumedOffset), 0)
+				FROM RttmQueueMetricEntity q
+				WHERE q.snapshotTime >= :since
+			""")
+	Long findMaxQueueDepthSince(@Param("since") Instant since);
 }

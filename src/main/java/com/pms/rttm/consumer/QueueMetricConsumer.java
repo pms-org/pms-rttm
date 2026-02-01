@@ -9,6 +9,7 @@ import com.pms.rttm.service.BatchQueueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import com.pms.rttm.config.KafkaTopicsProperties;
 import com.pms.rttm.entity.RttmErrorEventEntity;
 import com.pms.rttm.entity.RttmQueueMetricEntity;
 import com.pms.rttm.mapper.ErrorEventMapper;
@@ -21,8 +22,9 @@ import com.pms.rttm.proto.RttmQueueMetric;
 public class QueueMetricConsumer {
 
     private final BatchQueueService batchQueueService;
+    private final KafkaTopicsProperties kafkaTopicsProperties;
 
-    @KafkaListener(topics = "rttm.queue.metrics", containerFactory = "queueMetricListenerFactory")
+    @KafkaListener(topics = "#{kafkaTopicsProperties.queueMetrics}", containerFactory = "queueMetricListenerFactory")
     public void consume(RttmQueueMetric metric, Acknowledgment ack) {
         try {
             boolean offered = batchQueueService.enqueueMetric(metric);

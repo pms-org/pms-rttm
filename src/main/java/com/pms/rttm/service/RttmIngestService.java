@@ -18,6 +18,8 @@ public class RttmIngestService {
     private final RttmQueueMetricRepository queueMetricRepository;
     private final RttmDlqEventRepository dlqEventRepository;
     private final RttmErrorEventRepository errorEventRepository;
+    private final RttmStageLatencyRepository stageLatencyRepository;
+    private final RttmAlertRepository alertRepository;
 
     public void ingest(RttmTradeEventEntity entity) {
         tradeEventRepository.save(entity);
@@ -53,6 +55,24 @@ public class RttmIngestService {
     /** Batch save for error events */
     public void ingestBatchErrors(Iterable<RttmErrorEventEntity> entities) {
         errorEventRepository.saveAll(entities);
+    }
+
+    public void ingest(RttmStageLatencyEntity entity) {
+        stageLatencyRepository.save(entity);
+    }
+
+    /** Batch save for stage latencies */
+    public void ingestBatchStageLatencies(Iterable<RttmStageLatencyEntity> entities) {
+        stageLatencyRepository.saveAll(entities);
+    }
+
+    public void ingest(RttmAlertEntity entity) {
+        alertRepository.save(entity);
+    }
+
+    /** Batch save for alerts */
+    public void ingestBatchAlerts(Iterable<RttmAlertEntity> entities) {
+        alertRepository.saveAll(entities);
     }
 
 }

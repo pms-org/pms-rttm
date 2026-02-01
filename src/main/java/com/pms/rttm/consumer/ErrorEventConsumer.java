@@ -1,6 +1,7 @@
 package com.pms.rttm.consumer;
 
 import com.pms.rttm.service.BatchQueueService;
+import com.pms.rttm.config.KafkaTopicsProperties;
 import com.pms.rttm.entity.RttmErrorEventEntity;
 import com.pms.rttm.mapper.ErrorEventMapper;
 import com.pms.rttm.proto.RttmErrorEvent;
@@ -16,8 +17,9 @@ import org.springframework.stereotype.Component;
 public class ErrorEventConsumer {
 
     private final BatchQueueService batchQueueService;
+    private final KafkaTopicsProperties kafkaTopicsProperties;
 
-    @KafkaListener(topics = "rttm.error.events", containerFactory = "errorListenerFactory")
+    @KafkaListener(topics = "#{kafkaTopicsProperties.errorEvents}", containerFactory = "errorListenerFactory")
     public void consume(RttmErrorEvent event, Acknowledgment ack) {
 
         try {

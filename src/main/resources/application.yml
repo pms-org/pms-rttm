@@ -37,6 +37,14 @@ logging:
   level:
     com.pms.rttm: DEBUG
 
+
+kafka:
+  topics:
+    dlq-events: ${KAFKA_TOPIC_DLQ_EVENTS:rttm.dlq.events}
+    error-events: ${KAFKA_TOPIC_ERROR_EVENTS:rttm.error.events}
+    queue-metrics: ${KAFKA_TOPIC_QUEUE_METRICS:rttm.queue.metrics}
+    trade-events: ${KAFKA_TOPIC_TRADE_EVENTS:rttm.trade.events}
+
 # RTTM batching and queue settings
 rttm:
   batch:
@@ -48,3 +56,38 @@ rttm:
     concurrency: ${RTTM_CONSUMER_CONCURRENCY:3}
   fetch:
     max-wait-ms: ${RTTM_FETCH_MAX_WAIT_MS:3000}
+  
+  # Alert generation thresholds
+  alerts:
+    # Evaluation runs every minute by default
+    evaluation-interval-ms: ${RTTM_ALERT_EVAL_INTERVAL:60000}
+    
+    # Auto-resolve stale alerts every 5 minutes
+    auto-resolve-interval-ms: ${RTTM_ALERT_AUTO_RESOLVE_INTERVAL:300000}
+    
+    # Latency thresholds (milliseconds) - VERY LOW FOR DEV/TESTING
+    latency:
+      warning:
+        ms: ${RTTM_ALERT_LATENCY_WARNING:50}
+      critical:
+        ms: ${RTTM_ALERT_LATENCY_CRITICAL:200}
+    
+    # Error rate thresholds (count in 5 minutes) - VERY LOW FOR DEV/TESTING
+    error-rate:
+      warning: ${RTTM_ALERT_ERROR_RATE_WARNING:1}
+      critical: ${RTTM_ALERT_ERROR_RATE_CRITICAL:2}
+    
+    # DLQ count thresholds (count in 5 minutes) - VERY LOW FOR DEV/TESTING
+    dlq:
+      warning: ${RTTM_ALERT_DLQ_WARNING:1}
+      critical: ${RTTM_ALERT_DLQ_CRITICAL:2}
+    
+    # Queue depth thresholds - VERY LOW FOR DEV/TESTING
+    queue-depth:
+      warning: ${RTTM_ALERT_QUEUE_DEPTH_WARNING:10}
+      critical: ${RTTM_ALERT_QUEUE_DEPTH_CRITICAL:50}
+    
+    # TPS (transactions per second) thresholds - VERY LOW FOR DEV/TESTING
+    tps:
+      warning: ${RTTM_ALERT_TPS_WARNING:10}
+      critical: ${RTTM_ALERT_TPS_CRITICAL:50}

@@ -22,66 +22,69 @@ import static org.mockito.Mockito.verify;
 @TestPropertySource(properties = { "rttm.batch.size=10", "rttm.batch.poll-ms=10000" })
 public class BatchQueueServiceTest {
 
-    @Autowired
-    private BatchQueueService batchQueueService;
+        @Autowired
+        private BatchQueueService batchQueueService;
 
-    @MockBean
-    private RttmIngestService ingestService;
+        @MockBean
+        private RttmIngestService ingestService;
 
-    @Test
-    public void testTradeBatchSaved() throws Exception {
-        // enqueue 3 trade proto messages
-        long now = System.currentTimeMillis();
-        String uuid1 = UUID.randomUUID().toString();
-        String uuid2 = UUID.randomUUID().toString();
-        String uuid3 = UUID.randomUUID().toString();
+        @MockBean
+        private StageLatencyComputationService latencyService;
 
-        RttmTradeEvent t1 = RttmTradeEvent.newBuilder()
-                .setTradeId(uuid1)
-                .setServiceName("svc")
-                .setEventType("TRADE_RECEIVED")
-                .setEventStage("RECEIVED")
-                .setEventStatus("OK")
-                .setEventTime(now)
-                .build();
+        @Test
+        public void testTradeBatchSaved() throws Exception {
+                // enqueue 3 trade proto messages
+                long now = System.currentTimeMillis();
+                String uuid1 = UUID.randomUUID().toString();
+                String uuid2 = UUID.randomUUID().toString();
+                String uuid3 = UUID.randomUUID().toString();
 
-        RttmTradeEvent t2 = RttmTradeEvent.newBuilder()
-                .setTradeId(uuid2)
-                .setServiceName("svc")
-                .setEventType("TRADE_RECEIVED")
-                .setEventStage("RECEIVED")
-                .setEventStatus("OK")
-                .setEventTime(now)
-                .build();
+                RttmTradeEvent t1 = RttmTradeEvent.newBuilder()
+                                .setTradeId(uuid1)
+                                .setServiceName("svc")
+                                .setEventType("TRADE_RECEIVED")
+                                .setEventStage("RECEIVED")
+                                .setEventStatus("OK")
+                                .setEventTime(now)
+                                .build();
 
-        RttmTradeEvent t3 = RttmTradeEvent.newBuilder()
-                .setTradeId(uuid3)
-                .setServiceName("svc")
-                .setEventType("TRADE_RECEIVED")
-                .setEventStage("RECEIVED")
-                .setEventStatus("OK")
-                .setEventTime(now)
-                .build();
+                RttmTradeEvent t2 = RttmTradeEvent.newBuilder()
+                                .setTradeId(uuid2)
+                                .setServiceName("svc")
+                                .setEventType("TRADE_RECEIVED")
+                                .setEventStage("RECEIVED")
+                                .setEventStatus("OK")
+                                .setEventTime(now)
+                                .build();
 
-        boolean o1 = batchQueueService.enqueueTrade(t1);
-        boolean o2 = batchQueueService.enqueueTrade(t2);
-        boolean o3 = batchQueueService.enqueueTrade(t3);
+                RttmTradeEvent t3 = RttmTradeEvent.newBuilder()
+                                .setTradeId(uuid3)
+                                .setServiceName("svc")
+                                .setEventType("TRADE_RECEIVED")
+                                .setEventStage("RECEIVED")
+                                .setEventStatus("OK")
+                                .setEventTime(now)
+                                .build();
 
-        assertThat(o1).isTrue();
-        assertThat(o2).isTrue();
-        assertThat(o3).isTrue();
+                boolean o1 = batchQueueService.enqueueTrade(t1);
+                boolean o2 = batchQueueService.enqueueTrade(t2);
+                boolean o3 = batchQueueService.enqueueTrade(t3);
 
-        // call the batch processor directly
-        batchQueueService.processTradeBatch();
+                assertThat(o1).isTrue();
+                assertThat(o2).isTrue();
+                assertThat(o3).isTrue();
 
-        // capture and assert ingestService.ingestBatch was called with 3 entities
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<Iterable<RttmTradeEventEntity>> captor = ArgumentCaptor.forClass((Class) Iterable.class);
+                // call the batch processor directly
+                batchQueueService.processTradeBatch();
 
-        verify(ingestService, times(1)).ingestBatch(captor.capture());
+                // capture and assert ingestService.ingestBatch was called with 3 entities
+                @SuppressWarnings("unchecked")
+                ArgumentCaptor<Iterable<RttmTradeEventEntity>> captor = ArgumentCaptor.forClass((Class) Iterable.class);
 
-        Iterable<RttmTradeEventEntity> captured = captor.getValue();
-        long count = StreamSupport.stream(captured.spliterator(), false).count();
-        assertThat(count).isEqualTo(3);
-    }
+                verify(ingestService, times(1)).ingestBatch(captor.capture());
+
+                Iterable<RttmTradeEventEntity> captured = captor.getValue();
+                long count = StreamSupport.stream(captured.spliterator(), false).count();
+                assertThat(count).isEqualTo(3);
+        }
 }

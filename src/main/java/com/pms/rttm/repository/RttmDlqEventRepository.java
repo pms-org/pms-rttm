@@ -3,6 +3,7 @@ package com.pms.rttm.repository;
 import com.pms.rttm.entity.RttmDlqEventEntity;
 import com.pms.rttm.enums.EventStage;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,4 +28,6 @@ public interface RttmDlqEventRepository
                                                 r -> (EventStage) r[0],
                                                 r -> (Long) r[1]));
         }
+
+        long countByEventTimeAfter(Instant time);
 }

@@ -47,4 +47,21 @@ public class RttmDlqEventEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "event_stage", nullable = false, length = 32)
     private EventStage eventStage;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

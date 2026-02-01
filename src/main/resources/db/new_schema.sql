@@ -4,18 +4,20 @@
 CREATE TABLE rttm_trade_events (
     id              BIGSERIAL PRIMARY KEY,
     trade_id        UUID NOT NULL,               -- Unique trade identifier across entire pipeline
-    service_name    VARCHAR(64) NOT NULL,        -- Name of the microservice emitting the event
-    event_type      VARCHAR(64) NOT NULL,        -- Technical event (RECEIVED, CONSUMED, PRODUCED, FAILED, ACKED)
-    event_stage     VARCHAR(64) NOT NULL,        -- Business stage: RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
-    event_status    VARCHAR(32) NOT NULL,        -- SUCCESS / FAILED / RETRY / DLQ
-    source_queue    VARCHAR(128),                -- Source queue/topic (RabbitMQ or Kafka)
-    target_queue    VARCHAR(128),                -- Target queue/topic after processing
-    topic_name      VARCHAR(128),                -- Kafka topic name (if applicable)
-    consumer_group  VARCHAR(64),                 -- Kafka consumer group name
+    service_name    VARCHAR(128) NOT NULL,        -- Name of the microservice emitting the event
+    event_type      VARCHAR(128) NOT NULL,        -- Technical event (RECEIVED, CONSUMED, PRODUCED, FAILED, ACKED)
+    event_stage     VARCHAR(128) NOT NULL,        -- Business stage: RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
+    event_status    VARCHAR(64) NOT NULL,        -- SUCCESS / FAILED / RETRY / DLQ
+    source_queue    VARCHAR(256),                -- Source queue/topic (RabbitMQ or Kafka)
+    target_queue    VARCHAR(256),                -- Target queue/topic after processing
+    topic_name      VARCHAR(256),                -- Kafka topic name (if applicable)
+    consumer_group  VARCHAR(128),                 -- Kafka consumer group name
     partition_id    INT,                         -- Kafka partition number
     offset_value    BIGINT,                      -- Kafka offset processed
     event_time      TIMESTAMP NOT NULL,          -- Time when this event occurred (used for TPS & latency)
-    message         TEXT                         -- Optional context or debug message
+    message         TEXT,                        -- Optional context or debug message
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- Record creation time
+    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP   -- Record last update time
 );
 
 -- Index to support time-based queries (TPS trend, dashboards)
@@ -35,13 +37,15 @@ ON rttm_trade_events (service_name, event_time);
 -- Drives: Kafka lag (partition-wise & total)
 CREATE TABLE rttm_queue_metrics (
     id               BIGSERIAL PRIMARY KEY,
-    service_name     VARCHAR(64) NOT NULL,       -- Consumer service name
-    topic_name       VARCHAR(128) NOT NULL,      -- Kafka topic being consumed
+    service_name     VARCHAR(128) NOT NULL,       -- Consumer service name
+    topic_name       VARCHAR(256) NOT NULL,      -- Kafka topic being consumed
     partition_id     INT NOT NULL,               -- Partition number
     produced_offset  BIGINT NOT NULL,            -- Latest offset produced to topic
     consumed_offset  BIGINT NOT NULL,            -- Latest offset consumed by service
-    consumer_group   VARCHAR(64) NOT NULL,       -- Consumer group ID
-    snapshot_time    TIMESTAMP NOT NULL          -- Time of offset snapshot
+    consumer_group   VARCHAR(128) NOT NULL,       -- Consumer group ID
+    snapshot_time    TIMESTAMP NOT NULL,          -- Time of offset snapshot
+    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- Record creation time
+    updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP   -- Record last update time
 );
 
 -- Index to compute lag trends over time
@@ -58,12 +62,14 @@ ON rttm_queue_metrics (topic_name, partition_id);
 CREATE TABLE rttm_dlq_events (
     id              BIGSERIAL PRIMARY KEY,
     trade_id        UUID NOT NULL,                 -- Trade ID (may be null if failure before trade creation)
-    service_name    VARCHAR(64) NOT NULL,        -- Service that sent message to DLQ
-    topic_name      VARCHAR(128) NOT NULL,       -- DLQ topic name
-    original_topic  VARCHAR(128),                -- Original topic before DLQ redirection
+    service_name    VARCHAR(128) NOT NULL,        -- Service that sent message to DLQ
+    topic_name      VARCHAR(256) NOT NULL,       -- DLQ topic name
+    original_topic  VARCHAR(256),                -- Original topic before DLQ redirection
     reason          TEXT NOT NULL,                -- Failure reason
     event_time      TIMESTAMP NOT NULL,          -- When message was sent to DLQ
-    event_stage     VARCHAR(32) NOT NULL         -- Pipeline stage where failure occurred
+    event_stage     VARCHAR(128) NOT NULL,        -- Pipeline stage where failure occurred
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- Record creation time
+    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP   -- Record last update time
 );
 
 -- Index for DLQ time-based dashboards
@@ -80,11 +86,13 @@ ON rttm_dlq_events (service_name);
 CREATE TABLE rttm_error_events (
     id              BIGSERIAL PRIMARY KEY,
     trade_id        UUID NOT NULL,               -- Trade related to error (if applicable)
-    service_name    VARCHAR(64) NOT NULL,        -- Service where error occurred
-    error_type      VARCHAR(64) NOT NULL,        -- TECHNICAL / BUSINESS / TIMEOUT / DESERIALIZATION
+    service_name    VARCHAR(128) NOT NULL,        -- Service where error occurred
+    error_type      VARCHAR(128) NOT NULL,        -- TECHNICAL / BUSINESS / TIMEOUT / DESERIALIZATION
     error_message   TEXT NOT NULL,               -- Full error description
-    event_stage     VARCHAR(64) NOT NULL,
-    event_time      TIMESTAMP NOT NULL           -- Time of error occurrence
+    event_stage     VARCHAR(128) NOT NULL,
+    event_time      TIMESTAMP NOT NULL,           -- Time of error occurrence
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- Record creation time
+    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP   -- Record last update time
 );
 
 -- Index for error trend analysis
@@ -95,50 +103,19 @@ ON rttm_error_events (event_time);
 CREATE INDEX idx_error_service
 ON rttm_error_events (service_name);
 
--- PARSED LOGS TABLE (ADVANCED RTTM FEATURE)
--- Stores interpreted log messages
--- Drives: smart alerts, root cause hints, anomaly detection
-CREATE TABLE rttm_parsed_logs (
-    id              BIGSERIAL PRIMARY KEY,
-    service_name    VARCHAR(64) NOT NULL,        -- Service emitting the log
-    log_level       VARCHAR(16) NOT NULL,        -- INFO / WARN / ERROR / DEBUG
-    log_category    VARCHAR(64) NOT NULL,        -- KAFKA / DB / RETRY / PERFORMANCE / SECURITY
-    log_source      VARCHAR(64),                 -- Class or component name
-    trade_id        UUID NOT NULL,                 -- Related trade ID (if available)
-    message         TEXT NOT NULL,                -- Parsed and normalized log message
-    event_time      TIMESTAMP NOT NULL           -- Log timestamp
-);
-
--- Index for log timeline view
-CREATE INDEX idx_logs_time
-ON rttm_parsed_logs (event_time);
-
--- Index for trade-centric log tracing
-CREATE INDEX idx_logs_trade
-ON rttm_parsed_logs (trade_id);
-
--- ALERT THRESHOLDS CONFIGURATION 
--- Defines alert rules evaluated by RTTM engine
-CREATE TABLE rttm_alert_thresholds (    -- (NOT IN DB)
-    id              BIGSERIAL PRIMARY KEY,
-    metric_name     VARCHAR(64) NOT NULL,        -- TPS / KAFKA_LAG / DLQ_COUNT / ERROR_RATE / LATENCY_P99
-    service_name    VARCHAR(64),                 -- Optional service-specific threshold
-    threshold_value DOUBLE PRECISION NOT NULL,   -- Threshold value
-    comparison      VARCHAR(8) NOT NULL,         -- >, <, >=, <=
-    severity        VARCHAR(16) NOT NULL          -- LOW / MEDIUM / HIGH / CRITICAL
-);
-
 -- TRIGGERED ALERTS TABLE
 -- Stores actual alert instances shown in RTTM dashboard
 CREATE TABLE rttm_alerts (
     id              BIGSERIAL PRIMARY KEY,
-    metric_name     VARCHAR(64) NOT NULL,        -- Metric that breached threshold
-    service_name    VARCHAR(64),                 -- Affected service
+    metric_name     VARCHAR(128) NOT NULL,        -- Metric that breached threshold
+    service_name    VARCHAR(128),                 -- Affected service
     current_value   DOUBLE PRECISION NOT NULL,   -- Observed value
     threshold_value DOUBLE PRECISION NOT NULL,   -- Configured threshold
-    severity        VARCHAR(16) NOT NULL,        -- Alert severity
+    severity        VARCHAR(64) NOT NULL,        -- Alert severity
     triggered_time  TIMESTAMP NOT NULL,          -- When alert was raised
-    status          VARCHAR(16) NOT NULL         -- ACTIVE / ACKED / RESOLVED
+    status          VARCHAR(64) NOT NULL,         -- ACTIVE / ACKED / RESOLVED
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- Record creation time
+    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP   -- Record last update time
 );
 
 CREATE INDEX IF NOT EXISTS idx_alerts_triggered_time
@@ -151,10 +128,12 @@ CREATE INDEX IF NOT EXISTS idx_alerts_triggered_time
 CREATE TABLE rttm_stage_latency (
     id            BIGSERIAL PRIMARY KEY,
     trade_id      UUID NOT NULL,                 -- Trade identifier
-    service_name  VARCHAR(64) NOT NULL,          -- Service processing this stage
-    stage_name    VARCHAR(32) NOT NULL,          -- RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
+    service_name  VARCHAR(128) NOT NULL,          -- Service processing this stage
+    stage_name    VARCHAR(128) NOT NULL,          -- RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
     latency_ms    BIGINT NOT NULL,               -- Processing latency in milliseconds
-    event_time    TIMESTAMP NOT NULL             -- Time when latency was recorded
+    event_time    TIMESTAMP NOT NULL,             -- Time when latency was recorded
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- Record creation time
+    updated_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP   -- Record last update time
 );
 
 -- Index for latency trend analysis
