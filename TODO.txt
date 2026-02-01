@@ -2,9 +2,9 @@
 ✅ DONE 1.1 WRITE logic for latency computation
 TODO: make ws handlers to send only unsent data instead of just polling DB and sending everythings
 TODO: Remove ANALYZED state in EventStage after consultation
-TODO: Send data/metrics on Per Day Basis, not seconds basis.
+TODO: Send data/metrics on Per Day Basis, not seconds basis. Discuss with Mentor
 TODO: Send crct data in ws, define what / how much / on duration data should send in ws.
-TODO: Queue metrics get filled in DB every 30s, for every service its massive data. find some solution
+✅ DONE Queue metrics get filled in DB every 30s, for every service its massive data. find some solution
 TODO: Update Batch size before Production
 
 TODO: BEFORE PRODUCTION - Restore alert thresholds to production values:
