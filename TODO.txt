@@ -1,5 +1,27 @@
-TODO: 1. Write algorithm / logics for creating and saving alerts into DB during application runtime when things go above certain threshold. 
-TODO: 1.1 WRITE logic for latency computation
+✅ DONE 1. Write algorithm / logics for creating and saving alerts into DB during application runtime when things go above certain threshold. 
+✅ DONE 1.1 WRITE logic for latency computation
 TODO: make ws handlers to send only unsent data instead of just polling DB and sending everythings
 TODO: Remove ANALYZED state in EventStage after consultation
-TODO: Send data/metrics on Per Day Basis, not seconds basis. 
+TODO: Send data/metrics on Per Day Basis, not seconds basis.
+TODO: Send crct data in ws, define what / how much / on duration data should send in ws.
+TODO: Queue metrics get filled in DB every 30s, for every service its massive data. find some solution
+TODO: Update Batch size before Production
+
+TODO: BEFORE PRODUCTION - Restore alert thresholds to production values:
+  - Latency: warning 1000ms → critical 3000ms (currently 50ms/200ms VERY LOW for testing)
+  - Error rate: warning 5 → critical 20 (currently 1/2)
+  - DLQ count: warning 10 → critical 50 (currently 1/2)
+  - Queue depth: warning 1000 → critical 5000 (currently 10/50)
+  - TPS: warning 10000 → critical 15000 (currently 10/50)
+  
+  Use environment variables to override defaults without changing application.yml:
+   RTTM_ALERT_LATENCY_WARNING=1000
+   RTTM_ALERT_LATENCY_CRITICAL=3000
+   RTTM_ALERT_ERROR_RATE_WARNING=5
+   RTTM_ALERT_ERROR_RATE_CRITICAL=20
+   RTTM_ALERT_DLQ_WARNING=10
+   RTTM_ALERT_DLQ_CRITICAL=50
+   RTTM_ALERT_QUEUE_DEPTH_WARNING=1000
+   RTTM_ALERT_QUEUE_DEPTH_CRITICAL=5000
+   RTTM_ALERT_TPS_WARNING=10000
+   RTTM_ALERT_TPS_CRITICAL=15000 
