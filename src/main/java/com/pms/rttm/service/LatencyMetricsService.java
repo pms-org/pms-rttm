@@ -1,6 +1,6 @@
 package com.pms.rttm.service;
 
-import java.util.Map;
+import java.time.Instant;
 
 import org.springframework.stereotype.Service;
 
@@ -16,11 +16,28 @@ public class LatencyMetricsService {
 
     private final RttmStageLatencyRepository latencyRepo;
 
+    // Last 24 hours window in seconds
+    private static final Long WINDOW_24_HOURS = 86400L;
+
+    /**
+     * Get latency stats (avg, p95, p99) for a specific stage based on last 24
+     * hours.
+     * 
+     * @param stage The event stage
+     * @return Latency statistics for last 24 hours
+     */
     public AvgP95P99Latency latencyStats(EventStage stage) {
-        return latencyRepo.latencyStats(stage.name());
+        return latencyRepo.latencyStats(stage.name(), WINDOW_24_HOURS);
     }
 
+    /**
+     * Get average latency for a specific stage based on last 24 hours.
+     * 
+     * @param stage The event stage
+     * @return Average latency in milliseconds for last 24 hours
+     */
     public long avgLatency(EventStage stage) {
-        return latencyRepo.avgLatency(stage);
+        Instant since = Instant.now().minusSeconds(WINDOW_24_HOURS);
+        return latencyRepo.avgLatency(stage, WINDOW_24_HOURS, since);
     }
 }

@@ -97,6 +97,7 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
 
             long sum = 0;
             int cnt = 0;
+            // Calculate average latency across all stages for last 24 hours
             for (EventStage s : EventStage.values()) {
                 try {
                     long v = latencyService.avgLatency(s);

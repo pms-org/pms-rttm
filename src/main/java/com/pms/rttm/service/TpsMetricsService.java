@@ -24,7 +24,7 @@ public class TpsMetricsService {
     }
 
     public long currentTps() {
-        // TODO: change time interval back to 5 sec
+        // TODO: change time interval back to 1 sec
 
         return tradeRepo.countByEventTimeAfter(
                 // Instant.now().minusSeconds(1)

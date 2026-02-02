@@ -1,5 +1,7 @@
 package com.pms.rttm.repository;
 
+import java.time.Instant;
+
 import com.pms.rttm.dto.AvgP95P99Latency;
 import com.pms.rttm.entity.RttmStageLatencyEntity;
 import com.pms.rttm.enums.EventStage;
@@ -17,8 +19,11 @@ public interface RttmStageLatencyRepository
                 SELECT COALESCE(AVG(l.latencyMs), 0)
                 FROM RttmStageLatencyEntity l
                 WHERE l.stageName = :stage
+                  AND (:windowSeconds IS NULL OR l.createdAt >= :since)
             """)
-    long avgLatency(@Param("stage") EventStage stage);
+    long avgLatency(@Param("stage") EventStage stage,
+            @Param("windowSeconds") Long windowSeconds,
+            @Param("since") Instant since);
 
     @Query(value = """
                 SELECT
@@ -27,6 +32,8 @@ public interface RttmStageLatencyRepository
                     PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY latency_ms) AS p99
                 FROM rttm_stage_latency
                 WHERE stage_name = :stage
+                  AND (:windowSeconds IS NULL OR created_at >= NOW() - (:windowSeconds || ' seconds')::INTERVAL)
             """, nativeQuery = true)
-    AvgP95P99Latency latencyStats(@Param("stage") String stage);
+    AvgP95P99Latency latencyStats(@Param("stage") String stage,
+            @Param("windowSeconds") Long windowSeconds);
 }

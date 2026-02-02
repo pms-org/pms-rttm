@@ -83,8 +83,12 @@ public class AlertGenerationService {
     private List<RttmAlertEntity> checkStageLatencies(Instant triggeredTime) {
         List<RttmAlertEntity> alerts = new ArrayList<>();
 
+        // Check latency for the last 5 minutes (300 seconds)
+        Long windowSeconds = 300L;
+        Instant since = triggeredTime.minus(5, ChronoUnit.MINUTES);
+
         for (EventStage stage : EventStage.values()) {
-            long avgLatency = stageLatencyRepository.avgLatency(stage);
+            long avgLatency = stageLatencyRepository.avgLatency(stage, windowSeconds, since);
 
             if (avgLatency >= latencyCriticalThresholdMs) {
                 alerts.add(createAlert("LATENCY_P99", stage.name(), (double) avgLatency,

@@ -53,7 +53,7 @@ public class RttmController {
         long peak = tpsMetricsService.peakTps(Duration.ofDays(10));
         cards.add(new MetricCard("Peak TPS", peak, "tx/s", healthForTps(peak)));
 
-        // Avg latency: compute simple average across stages
+        // Avg latency: compute simple average across stages - Last 24 hours
         long sum = 0;
         int cnt = 0;
         for (EventStage s : EventStage.values()) {

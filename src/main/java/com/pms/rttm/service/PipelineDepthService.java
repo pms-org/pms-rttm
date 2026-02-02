@@ -1,5 +1,6 @@
 package com.pms.rttm.service;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -20,30 +21,35 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PipelineDepthService {
 
-    private final RttmTradeEventRepository tradeRepo;
-    private final RttmStageLatencyRepository latencyRepo;
-    private final RttmErrorEventRepository errorRepo;
-    private final RttmDlqEventRepository dlqRepo;
+        // Last 24 hours window in seconds
+        private static final Long WINDOW_24_HOURS = 86400L;
 
-    public PipelineStageMetrics stageMetrics(EventStage stage) {
+        private final RttmTradeEventRepository tradeRepo;
+        private final RttmStageLatencyRepository latencyRepo;
+        private final RttmErrorEventRepository errorRepo;
+        private final RttmDlqEventRepository dlqRepo;
 
-        long total = tradeRepo.countByStage(stage);
-        long errors = errorRepo.countByStage(stage);
-        long dlq = dlqRepo.countGroupedByStage()
-                .getOrDefault(stage, 0L);
+        public PipelineStageMetrics stageMetrics(EventStage stage) {
 
-        double success = total == 0 ? 100.0 : ((double) (total - errors - dlq) / total) * 100;
+                long total = tradeRepo.countByStage(stage);
+                long errors = errorRepo.countByStage(stage);
+                long dlq = dlqRepo.countGroupedByStage()
+                                .getOrDefault(stage, 0L);
 
-        return new PipelineStageMetrics(
-                total,
-                latencyRepo.avgLatency(stage),
-                success);
-    }
+                double success = total == 0 ? 100.0 : ((double) (total - errors - dlq) / total) * 100;
 
-    public Map<EventStage, PipelineStageMetrics> fullPipeline() {
-        return Arrays.stream(EventStage.values())
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        this::stageMetrics));
-    }
+                // Use last 24 hours latency data
+                Instant since = Instant.now().minusSeconds(WINDOW_24_HOURS);
+                return new PipelineStageMetrics(
+                                total,
+                                latencyRepo.avgLatency(stage, WINDOW_24_HOURS, since),
+                                success);
+        }
+
+        public Map<EventStage, PipelineStageMetrics> fullPipeline() {
+                return Arrays.stream(EventStage.values())
+                                .collect(Collectors.toMap(
+                                                Function.identity(),
+                                                this::stageMetrics));
+        }
 }

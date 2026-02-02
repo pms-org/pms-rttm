@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pms.rttm.dto.DlqOverview;
@@ -41,12 +42,12 @@ public class TelemetrySnapshotController {
     @GetMapping("/telemetry-snapshot")
     public ResponseEntity<RttmAnalysisData> telemetrySnapshot() {
 
-        // TODO: Change back to last 9 mins per minute
-        // tps trend (last 10 days, per minute)
-        List<Long> tpsTrend = tpsMetricsService.tpsTrend(Duration.ofDays(10), "minute")
+        // TODO: Change back to last 10 mins per minute
+        // tps trend (last 10 mins, per minute)
+        List<Long> tpsTrend = tpsMetricsService.tpsTrend(Duration.ofMinutes(10), "minute")
                 .stream().map(b -> b.getTps()).collect(Collectors.toList());
 
-        // latency metrics for COMMITTED stage (Avg, P95, P99)
+        // latency metrics for COMMITTED stage (Avg, P95, P99) - Last 24 hours
         List<LabelValue> latency = new ArrayList<>();
         try {
             var stats = latencyMetricsService.latencyStats(EventStage.COMMITTED);

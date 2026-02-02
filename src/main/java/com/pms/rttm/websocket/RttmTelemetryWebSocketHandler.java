@@ -104,6 +104,7 @@ public class RttmTelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private List<LabelValue> buildLatencyMetrics() {
         try {
+            // Get latency stats for last 24 hours
             var stats = latencyService.latencyStats(EventStage.COMMITTED);
             return Arrays.asList(
                     new LabelValue("Avg", stats.getAvg() == null ? 0L : stats.getAvg().longValue()),
