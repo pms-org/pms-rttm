@@ -40,6 +40,6 @@ Dockerfile
 
 *-creds.txt
 .env
-*env*
+*env.*
 notes/
 **/env.properties
