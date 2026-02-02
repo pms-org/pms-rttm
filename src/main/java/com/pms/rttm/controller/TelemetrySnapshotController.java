@@ -46,10 +46,10 @@ public class TelemetrySnapshotController {
         List<Long> tpsTrend = tpsMetricsService.tpsTrend(Duration.ofDays(10), "minute")
                 .stream().map(b -> b.getTps()).collect(Collectors.toList());
 
-        // latency metrics for RECEIVED stage (Avg, P95, P99)
+        // latency metrics for COMMITTED stage (Avg, P95, P99)
         List<LabelValue> latency = new ArrayList<>();
         try {
-            var stats = latencyMetricsService.latencyStats(EventStage.RECEIVED);
+            var stats = latencyMetricsService.latencyStats(EventStage.COMMITTED);
             latency.add(new LabelValue("Avg", stats.getAvg() == null ? 0L : stats.getAvg().longValue()));
             latency.add(new LabelValue("P95", stats.getP95() == null ? 0L : stats.getP95().longValue()));
             latency.add(new LabelValue("P99", stats.getP99() == null ? 0L : stats.getP99().longValue()));

@@ -7,6 +7,12 @@ TODO: Send crct data in ws, define what / how much / on duration data should sen
 ✅ DONE Queue metrics get filled in DB every 30s, for every service its massive data. find some solution
 TODO: Update Batch size before Production
 
+TODO: Not Urgent
+- Update telemetry service and WebSocket handlers to send latency metrics dynamically based on requested stages (currently hardcoded to COMMITTED stage)
+  - Allow frontend to specify which stage(s) to monitor
+  - Update REST endpoint /api/rttm/telemetry-snapshot to accept optional stage parameter
+  - Update RttmTelemetryWebSocketHandler to support stage selection
+
 TODO: BEFORE PRODUCTION - Restore alert thresholds to production values:
   - Latency: warning 1000ms → critical 3000ms (currently 50ms/200ms VERY LOW for testing)
   - Error rate: warning 5 → critical 20 (currently 1/2)
