@@ -34,6 +34,14 @@ public interface RttmTradeEventRepository extends JpaRepository<RttmTradeEventEn
             """)
     long countByStage(@Param("stage") EventStage stage);
 
+    @Query("""
+                SELECT COUNT(e)
+                FROM RttmTradeEventEntity e
+                WHERE e.eventStage = :stage
+                  AND e.eventTime >= :since
+            """)
+    long countByStageSince(@Param("stage") EventStage stage, @Param("since") Instant since);
+
     // ================= TPS PER SECOND =================
 
     @Query("""

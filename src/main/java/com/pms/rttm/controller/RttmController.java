@@ -20,6 +20,7 @@ import com.pms.rttm.dto.PipelineStage;
 import com.pms.rttm.dto.PipelineStageMetrics;
 import com.pms.rttm.enums.EventStage;
 import com.pms.rttm.service.DlqMetricsService;
+import com.pms.rttm.service.InvalidTradeMetricsService;
 import com.pms.rttm.service.KafkaLagService;
 import com.pms.rttm.service.LatencyMetricsService;
 import com.pms.rttm.service.PipelineDepthService;
@@ -36,7 +37,7 @@ public class RttmController {
 
     private final TpsMetricsService tpsMetricsService;
     private final LatencyMetricsService latencyMetricsService;
-    private final KafkaLagService kafkaLagService;
+    private final InvalidTradeMetricsService invalidTradeMetricsService;
     private final DlqMetricsService dlqMetricsService;
     private final PipelineDepthService pipelineDepthService;
 
@@ -48,9 +49,8 @@ public class RttmController {
         long current = tpsMetricsService.currentTps();
         cards.add(new MetricCard("Current TPS", current, "tx/s", healthForTps(current)));
 
-        // Peak TPS (last minute)
-        // TODO: Change duration to 1 minute
-        long peak = tpsMetricsService.peakTps(Duration.ofDays(10));
+        // Peak TPS (last 24 hours)
+        long peak = tpsMetricsService.peakTps(Duration.ofHours(24));
         cards.add(new MetricCard("Peak TPS", peak, "tx/s", healthForTps(peak)));
 
         // Avg latency: compute simple average across stages - Last 24 hours
@@ -72,9 +72,9 @@ public class RttmController {
         long dlq = dlqMetricsService.totalDlq();
         cards.add(new MetricCard("DLQ Count", dlq, "errors", healthForDlq(dlq)));
 
-        // Kafka lag
-        long lag = kafkaLagService.totalLag();
-        cards.add(new MetricCard("Kafka Lag", lag, "msgs", healthForLag(lag)));
+        // Invalid Trades count (last 24 hours)
+        long invalidTrades = invalidTradeMetricsService.invalidTradesCount();
+        cards.add(new MetricCard("Invalid Trades", invalidTrades, "trades", healthForInvalidTrades(invalidTrades)));
 
         return ResponseEntity.ok(cards);
     }
@@ -133,12 +133,12 @@ public class RttmController {
         return "healthy";
     }
 
-    private String healthForLag(long lag) {
-        if (lag <= 0)
+    private String healthForInvalidTrades(long count) {
+        if (count == 0)
             return "healthy";
-        if (lag > 2000)
+        if (count > 50)
             return "critical";
-        if (lag > 500)
+        if (count > 10)
             return "warning";
         return "healthy";
     }

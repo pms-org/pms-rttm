@@ -23,6 +23,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,11 +66,11 @@ class AlertGenerationServiceTest {
 
     @Test
     void evaluateAndGenerateAlerts_withCriticalLatency_createsAlert() {
-        when(stageLatencyRepository.avgLatency(EventStage.ENRICHED)).thenReturn(3500L);
-        when(stageLatencyRepository.avgLatency(EventStage.RECEIVED)).thenReturn(0L);
-        when(stageLatencyRepository.avgLatency(EventStage.VALIDATED)).thenReturn(0L);
-        when(stageLatencyRepository.avgLatency(EventStage.COMMITTED)).thenReturn(0L);
-        when(stageLatencyRepository.avgLatency(EventStage.ANALYZED)).thenReturn(0L);
+        when(stageLatencyRepository.avgLatency(eq(EventStage.ENRICHED), any(), any())).thenReturn(3500L);
+        when(stageLatencyRepository.avgLatency(eq(EventStage.RECEIVED), any(), any())).thenReturn(0L);
+        when(stageLatencyRepository.avgLatency(eq(EventStage.VALIDATED), any(), any())).thenReturn(0L);
+        when(stageLatencyRepository.avgLatency(eq(EventStage.COMMITTED), any(), any())).thenReturn(0L);
+        when(stageLatencyRepository.avgLatency(eq(EventStage.ANALYZED), any(), any())).thenReturn(0L);
         when(errorEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(dlqEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(queueMetricRepository.findMaxQueueDepthSince(any())).thenReturn(0L);
@@ -88,7 +89,7 @@ class AlertGenerationServiceTest {
 
     @Test
     void evaluateAndGenerateAlerts_withHighErrorRate_createsAlert() {
-        when(stageLatencyRepository.avgLatency(any())).thenReturn(0L);
+        when(stageLatencyRepository.avgLatency(any(), any(), any())).thenReturn(0L);
         when(errorEventRepository.countByEventTimeAfter(any())).thenReturn(25L);
         when(dlqEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(queueMetricRepository.findMaxQueueDepthSince(any())).thenReturn(0L);
@@ -104,7 +105,7 @@ class AlertGenerationServiceTest {
 
     @Test
     void evaluateAndGenerateAlerts_withHighDlqCount_createsAlert() {
-        when(stageLatencyRepository.avgLatency(any())).thenReturn(0L);
+        when(stageLatencyRepository.avgLatency(any(), any(), any())).thenReturn(0L);
         when(errorEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(dlqEventRepository.countByEventTimeAfter(any())).thenReturn(60L);
         when(queueMetricRepository.findMaxQueueDepthSince(any())).thenReturn(0L);
@@ -120,7 +121,7 @@ class AlertGenerationServiceTest {
 
     @Test
     void evaluateAndGenerateAlerts_withHighQueueDepth_createsAlert() {
-        when(stageLatencyRepository.avgLatency(any())).thenReturn(0L);
+        when(stageLatencyRepository.avgLatency(any(), any(), any())).thenReturn(0L);
         when(errorEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(dlqEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(queueMetricRepository.findMaxQueueDepthSince(any())).thenReturn(6000L);
@@ -136,7 +137,7 @@ class AlertGenerationServiceTest {
 
     @Test
     void evaluateAndGenerateAlerts_withHighTps_createsAlert() {
-        when(stageLatencyRepository.avgLatency(any())).thenReturn(0L);
+        when(stageLatencyRepository.avgLatency(any(), any(), any())).thenReturn(0L);
         when(errorEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(dlqEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(queueMetricRepository.findMaxQueueDepthSince(any())).thenReturn(0L);
@@ -152,7 +153,7 @@ class AlertGenerationServiceTest {
 
     @Test
     void evaluateAndGenerateAlerts_withNoThresholdExceeded_createsNoAlerts() {
-        when(stageLatencyRepository.avgLatency(any())).thenReturn(500L);
+        when(stageLatencyRepository.avgLatency(any(), any(), any())).thenReturn(500L);
         when(errorEventRepository.countByEventTimeAfter(any())).thenReturn(2L);
         when(dlqEventRepository.countByEventTimeAfter(any())).thenReturn(3L);
         when(queueMetricRepository.findMaxQueueDepthSince(any())).thenReturn(500L);

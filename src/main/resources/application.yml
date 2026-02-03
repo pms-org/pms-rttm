@@ -51,6 +51,7 @@ kafka:
     error-events: ${KAFKA_TOPIC_ERROR_EVENTS:rttm.error.events}
     queue-metrics: ${KAFKA_TOPIC_QUEUE_METRICS:rttm.queue.metrics}
     trade-events: ${KAFKA_TOPIC_TRADE_EVENTS:rttm.trade.events}
+    invalid-trades: ${KAFKA_TOPIC_INVALID_TRADES:invalid-trades-topic}
 
 # RTTM batching and queue settings
 rttm:

@@ -20,5 +20,13 @@ public interface RttmErrorEventRepository
                         """)
         long countByStage(@Param("stage") EventStage stage);
 
+        @Query("""
+                            SELECT COUNT(e)
+                            FROM RttmErrorEventEntity e
+                            WHERE e.eventStage = :stage
+                              AND e.eventTime >= :since
+                        """)
+        long countByStageSince(@Param("stage") EventStage stage, @Param("since") Instant since);
+
         long countByEventTimeAfter(Instant time);
 }

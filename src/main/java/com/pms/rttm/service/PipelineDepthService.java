@@ -31,15 +31,16 @@ public class PipelineDepthService {
 
         public PipelineStageMetrics stageMetrics(EventStage stage) {
 
-                long total = tradeRepo.countByStage(stage);
-                long errors = errorRepo.countByStage(stage);
-                long dlq = dlqRepo.countGroupedByStage()
+                // Use last 24 hours for all metrics
+                Instant since = Instant.now().minusSeconds(WINDOW_24_HOURS);
+
+                long total = tradeRepo.countByStageSince(stage, since);
+                long errors = errorRepo.countByStageSince(stage, since);
+                long dlq = dlqRepo.countGroupedByStageSince(since)
                                 .getOrDefault(stage, 0L);
 
                 double success = total == 0 ? 100.0 : ((double) (total - errors - dlq) / total) * 100;
 
-                // Use last 24 hours latency data
-                Instant since = Instant.now().minusSeconds(WINDOW_24_HOURS);
                 return new PipelineStageMetrics(
                                 total,
                                 latencyRepo.avgLatency(stage, WINDOW_24_HOURS, since),

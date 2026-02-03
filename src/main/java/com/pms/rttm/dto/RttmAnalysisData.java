@@ -10,8 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RttmAnalysisData {
-    // Only include the three pieces needed for the dashboard initial load
+    // Telemetry data for dashboard initial load
     private List<Long> tpsTrend;
     private List<LabelValue> latencyMetrics;
-    private List<PartitionLag> kafkaLag;
 }

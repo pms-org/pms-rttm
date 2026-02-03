@@ -33,7 +33,7 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
     private TpsMetricsService tpsService;
 
     @Autowired
-    private KafkaLagService lagService;
+    private InvalidTradeMetricsService invalidTradeService;
 
     @Autowired
     private LatencyMetricsService latencyService;
@@ -92,8 +92,8 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
         try {
             long currentTps = tpsService.currentTps();
 
-            // TODO: Change duration to 1 minute
-            long peakTps = tpsService.peakTps(Duration.ofDays(10));
+            // Peak TPS (last 24 hours)
+            long peakTps = tpsService.peakTps(Duration.ofHours(24));
 
             long sum = 0;
             int cnt = 0;
@@ -109,13 +109,14 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
             }
             long avgLatency = (cnt == 0) ? 0 : sum / cnt;
             long dlqCount = dlqService.totalDlq();
-            long kafkaLag = lagService.totalLag();
+            long invalidTrades = invalidTradeService.invalidTradesCount();
 
             metrics.add(createMetric("Current TPS", (int) currentTps, "tx/s", getStatus(currentTps, 50)));
             metrics.add(createMetric("Peak TPS", (int) peakTps, "tx/s", getStatus(peakTps, 100)));
             metrics.add(createMetric("Avg Latency", (int) avgLatency, "ms", getLatencyStatus(avgLatency)));
             metrics.add(createMetric("DLQ Count", (int) dlqCount, "errors", getDlqStatus(dlqCount)));
-            metrics.add(createMetric("Kafka Lag", (int) kafkaLag, "msgs", getLagStatus(kafkaLag)));
+            metrics.add(createMetric("Invalid Trades", (int) invalidTrades, "trades",
+                    getInvalidTradesStatus(invalidTrades)));
         } catch (Exception e) {
             log.error("Error while getting metrics: {}", e);
         }
@@ -156,10 +157,10 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
         return "healthy";
     }
 
-    private String getLagStatus(long lag) {
-        if (lag > 10000)
+    private String getInvalidTradesStatus(long count) {
+        if (count > 50)
             return "critical";
-        if (lag > 1000)
+        if (count > 10)
             return "warning";
         return "healthy";
     }

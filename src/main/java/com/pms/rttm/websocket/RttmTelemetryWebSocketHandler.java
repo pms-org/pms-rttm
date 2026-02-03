@@ -31,7 +31,6 @@ public class RttmTelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private final TpsMetricsService tpsService;
     private final LatencyMetricsService latencyService;
-    private final KafkaLagService lagService;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -42,9 +41,6 @@ public class RttmTelemetryWebSocketHandler extends TextWebSocketHandler {
 
                 // Latency metrics
                 sendMessage(session, "LATENCY_METRICS", buildLatencyMetrics());
-
-                // Kafka lag
-                sendMessage(session, "KAFKA_LAG", buildKafkaLag());
 
             } catch (Exception e) {
                 log.error("Error while sending telemetry websocket messages", e);
@@ -97,8 +93,8 @@ public class RttmTelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private List<Long> buildTpsTrend() {
 
-        // TODO: Change this back to 9 mins
-        return tpsService.tpsTrend(Duration.ofDays(10), "minute").stream()
+        // TPS trend for last 24 hours, per hour
+        return tpsService.tpsTrend(Duration.ofHours(24), "hour").stream()
                 .map(TpsBucket::getTps).collect(Collectors.toList());
     }
 
@@ -113,11 +109,6 @@ public class RttmTelemetryWebSocketHandler extends TextWebSocketHandler {
         } catch (Exception e) {
             return Arrays.asList(new LabelValue("Avg", 0L), new LabelValue("P95", 0L), new LabelValue("P99", 0L));
         }
-    }
-
-    private List<PartitionLag> buildKafkaLag() {
-        return lagService.lagByPartition().entrySet().stream()
-                .map(e -> new PartitionLag("P" + e.getKey(), e.getValue())).collect(Collectors.toList());
     }
 
 }

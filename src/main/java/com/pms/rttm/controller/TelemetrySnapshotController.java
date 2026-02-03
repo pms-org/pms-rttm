@@ -3,27 +3,17 @@ package com.pms.rttm.controller;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pms.rttm.dto.DlqOverview;
 import com.pms.rttm.dto.LabelValue;
-import com.pms.rttm.dto.PartitionLag;
 import com.pms.rttm.dto.RttmAnalysisData;
-import com.pms.rttm.dto.MetricCard;
-import com.pms.rttm.dto.PipelineStage;
-import com.pms.rttm.dto.PipelineStageMetrics;
 import com.pms.rttm.enums.EventStage;
-import com.pms.rttm.service.DlqMetricsService;
-import com.pms.rttm.service.KafkaLagService;
 import com.pms.rttm.service.LatencyMetricsService;
-import com.pms.rttm.service.PipelineDepthService;
 import com.pms.rttm.service.TpsMetricsService;
 
 import lombok.RequiredArgsConstructor;
@@ -37,14 +27,12 @@ public class TelemetrySnapshotController {
 
     private final TpsMetricsService tpsMetricsService;
     private final LatencyMetricsService latencyMetricsService;
-    private final KafkaLagService kafkaLagService;
 
     @GetMapping("/telemetry-snapshot")
     public ResponseEntity<RttmAnalysisData> telemetrySnapshot() {
 
-        // TODO: Change back to last 10 mins per minute
-        // tps trend (last 10 mins, per minute)
-        List<Long> tpsTrend = tpsMetricsService.tpsTrend(Duration.ofMinutes(10), "minute")
+        // TPS trend (last 24 hours, per hour)
+        List<Long> tpsTrend = tpsMetricsService.tpsTrend(Duration.ofHours(24), "hour")
                 .stream().map(b -> b.getTps()).collect(Collectors.toList());
 
         // latency metrics for COMMITTED stage (Avg, P95, P99) - Last 24 hours
@@ -61,12 +49,7 @@ public class TelemetrySnapshotController {
             latency.add(new LabelValue("P99", 0L));
         }
 
-        // kafka lag per partition
-        List<PartitionLag> partitionLags = kafkaLagService.lagByPartition().entrySet().stream()
-                .map(e -> new PartitionLag("P" + e.getKey(), e.getValue()))
-                .collect(Collectors.toList());
-
-        RttmAnalysisData data = new RttmAnalysisData(tpsTrend, latency, partitionLags);
+        RttmAnalysisData data = new RttmAnalysisData(tpsTrend, latency);
         return ResponseEntity.ok(data);
     }
 

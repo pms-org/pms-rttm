@@ -2,14 +2,17 @@ package com.pms.rttm.service;
 
 import com.pms.rttm.entity.RttmDlqEventEntity;
 import com.pms.rttm.entity.RttmErrorEventEntity;
+import com.pms.rttm.entity.RttmInvalidTradeEntity;
 import com.pms.rttm.entity.RttmQueueMetricEntity;
 import com.pms.rttm.entity.RttmTradeEventEntity;
 import com.pms.rttm.mapper.DlqEventMapper;
 import com.pms.rttm.mapper.ErrorEventMapper;
+import com.pms.rttm.mapper.InvalidTradeMapper;
 import com.pms.rttm.mapper.QueueMetricMapper;
 import com.pms.rttm.mapper.TradeEventMapper;
 import com.pms.rttm.proto.RttmDlqEvent;
 import com.pms.rttm.proto.RttmErrorEvent;
+import com.pms.validation.proto.InvalidTradeEventProto;
 import com.pms.rttm.proto.RttmQueueMetric;
 import com.pms.rttm.proto.RttmTradeEvent;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +40,7 @@ public class BatchQueueService {
     private final RttmIngestService ingestService;
     private final StageLatencyComputationService latencyService;
     private final QueueMetricAggregationService aggregationService;
+    private final InvalidTradeMapper invalidTradeMapper;
 
     private static final int MAX_RETRIES = 3;
 
@@ -49,11 +54,13 @@ public class BatchQueueService {
     private final LinkedBlockingQueue<RttmErrorEvent> errorQueue = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<RttmQueueMetric> metricQueue = new LinkedBlockingQueue<>();
     private final LinkedBlockingQueue<RttmDlqEvent> dlqQueue = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<InvalidTradeEventProto> invalidTradeQueue = new LinkedBlockingQueue<>();
 
     private final Map<String, Integer> tradeRetryCount = new ConcurrentHashMap<>();
     private final Map<String, Integer> errorRetryCount = new ConcurrentHashMap<>();
     private final Map<String, Integer> metricRetryCount = new ConcurrentHashMap<>();
     private final Map<String, Integer> dlqRetryCount = new ConcurrentHashMap<>();
+    private final Map<String, Integer> invalidTradeRetryCount = new ConcurrentHashMap<>();
 
     public boolean enqueueTrade(RttmTradeEvent event) throws InterruptedException {
         return tradeQueue.offer(event, 500, TimeUnit.MILLISECONDS);
@@ -71,6 +78,10 @@ public class BatchQueueService {
         return dlqQueue.offer(event, 500, TimeUnit.MILLISECONDS);
     }
 
+    public boolean enqueueInvalidTrade(InvalidTradeEventProto event) throws InterruptedException {
+        return invalidTradeQueue.offer(event, 500, TimeUnit.MILLISECONDS);
+    }
+
     @Scheduled(fixedDelayString = "${rttm.batch.poll-ms:2000}")
     public void processTradeBatch() {
         try {
@@ -80,7 +91,7 @@ public class BatchQueueService {
                 return;
 
             List<RttmTradeEventEntity> entities = new ArrayList<>(items.size());
-            Set<UUID> tradeIds = new HashSet<>();
+            Set<UUID> tradeIds = new LinkedHashSet<>();
 
             for (RttmTradeEvent e : items) {
                 RttmTradeEventEntity entity = TradeEventMapper.toEntity(e);
@@ -248,6 +259,47 @@ public class BatchQueueService {
             }
         } catch (Exception ex) {
             log.error("Unexpected error in dlq batch processor", ex);
+        }
+    }
+
+    @Scheduled(fixedDelayString = "${rttm.batch.poll-ms:2000}")
+    public void processInvalidTradeBatch() {
+        try {
+            List<InvalidTradeEventProto> items = new ArrayList<>();
+            invalidTradeQueue.drainTo(items, batchSize);
+            if (items.isEmpty())
+                return;
+
+            List<RttmInvalidTradeEntity> entities = new ArrayList<>(items.size());
+            for (InvalidTradeEventProto e : items)
+                entities.add(invalidTradeMapper.toEntity(e));
+
+            try {
+                ingestService.ingestBatchInvalidTrades(entities);
+                log.info("Saved invalid trade batch of {}", entities.size());
+            } catch (Exception ex) {
+                log.error("DB save failed for invalid trade batch, re-queueing {} items", entities.size(), ex);
+                for (InvalidTradeEventProto r : items) {
+                    String eventKey = r.getTradeId();
+                    int retries = invalidTradeRetryCount.getOrDefault(eventKey, 0);
+
+                    if (retries < MAX_RETRIES) {
+                        invalidTradeRetryCount.put(eventKey, retries + 1);
+                        try {
+                            invalidTradeQueue.put(r);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    } else {
+                        log.error("Max retries ({}) exceeded for invalid trade event: {}, discarding", MAX_RETRIES,
+                                eventKey);
+                        invalidTradeRetryCount.remove(eventKey);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            log.error("Unexpected error in invalid trade batch processor", ex);
         }
     }
 

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -30,4 +31,20 @@ public interface RttmDlqEventRepository
         }
 
         long countByEventTimeAfter(Instant time);
+
+        // Last 24 hours methods
+        @Query("""
+                            SELECT d.eventStage, COUNT(d)
+                            FROM RttmDlqEventEntity d
+                            WHERE d.eventTime >= :since
+                            GROUP BY d.eventStage
+                        """)
+        List<Object[]> countGroupedByStageRawSince(@Param("since") Instant since);
+
+        default Map<EventStage, Long> countGroupedByStageSince(Instant since) {
+                return countGroupedByStageRawSince(since).stream()
+                                .collect(Collectors.toMap(
+                                                r -> (EventStage) r[0],
+                                                r -> (Long) r[1]));
+        }
 }

@@ -14,4 +14,5 @@ public class KafkaTopicsProperties {
     private String errorEvents;
     private String queueMetrics;
     private String tradeEvents;
+    private String invalidTrades;
 }

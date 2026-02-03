@@ -76,6 +76,38 @@ public interface RttmQueueMetricRepository
 						(oldV, newV) -> oldV + newV));
 	}
 
+	// ================= LAST 24 HOURS AVERAGE LAG =================
+
+	/**
+	 * Average total lag across all partitions for last 24 hours.
+	 */
+	@Query("""
+				SELECT COALESCE(AVG(q.producedOffset - q.consumedOffset), 0)
+				FROM RttmQueueMetricEntity q
+				WHERE q.snapshotTime >= :since
+			""")
+	long avgTotalLagSince(@Param("since") Instant since);
+
+	/**
+	 * Average lag per partition for last 24 hours.
+	 */
+	@Query("""
+				SELECT q.partitionId,
+					   AVG(q.producedOffset - q.consumedOffset)
+				FROM RttmQueueMetricEntity q
+				WHERE q.snapshotTime >= :since
+				GROUP BY q.partitionId
+			""")
+	List<Object[]> avgLagByPartitionRawSince(@Param("since") Instant since);
+
+	default Map<Integer, Long> avgLagByPartitionSince(Instant since) {
+		return avgLagByPartitionRawSince(since)
+				.stream()
+				.collect(Collectors.toMap(
+						r -> ((Number) r[0]).intValue(),
+						r -> ((Number) r[1]).longValue()));
+	}
+
 	// Max queue depth since a given time (for alert generation)
 	@Query("""
 				SELECT COALESCE(MAX(q.producedOffset - q.consumedOffset), 0)

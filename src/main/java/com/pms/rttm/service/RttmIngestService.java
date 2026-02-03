@@ -20,6 +20,7 @@ public class RttmIngestService {
     private final RttmErrorEventRepository errorEventRepository;
     private final RttmStageLatencyRepository stageLatencyRepository;
     private final RttmAlertRepository alertRepository;
+    private final RttmInvalidTradeRepository invalidTradeRepository;
 
     public void ingest(RttmTradeEventEntity entity) {
         tradeEventRepository.save(entity);
@@ -73,6 +74,15 @@ public class RttmIngestService {
     /** Batch save for alerts */
     public void ingestBatchAlerts(Iterable<RttmAlertEntity> entities) {
         alertRepository.saveAll(entities);
+    }
+
+    public void ingest(RttmInvalidTradeEntity entity) {
+        invalidTradeRepository.save(entity);
+    }
+
+    /** Batch save for invalid trades */
+    public void ingestBatchInvalidTrades(Iterable<RttmInvalidTradeEntity> entities) {
+        invalidTradeRepository.saveAll(entities);
     }
 
 }

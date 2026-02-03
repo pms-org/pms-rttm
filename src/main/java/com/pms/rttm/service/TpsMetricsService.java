@@ -24,12 +24,8 @@ public class TpsMetricsService {
     }
 
     public long currentTps() {
-        // TODO: change time interval back to 1 sec
-
         return tradeRepo.countByEventTimeAfter(
-                // Instant.now().minusSeconds(1)
-                Instant.parse("2026-01-09T00:00:00Z") // from jan 9 data
-        );
+                Instant.now().minusSeconds(1));
     }
 
     public List<TpsBucket> tpsTrend(Duration window, String bucket) {
