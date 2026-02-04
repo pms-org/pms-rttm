@@ -16,9 +16,9 @@ message RttmTradeEvent {
   // ===============================
   // Event semantics
   // ===============================
-  string event_type = 3;     // RECEIVED / CONSUMED / PRODUCED / FAILED / ACKED
-  string event_stage = 4;    // RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
-  string event_status = 5;   // SUCCESS / FAILED / RETRY / DLQ
+  string event_type = 3; // RECEIVED / CONSUMED / PRODUCED / FAILED / ACKED
+  string event_stage = 4; // RECEIVED / VALIDATED / ENRICHED / COMMITTED
+  string event_status = 5; // SUCCESS / FAILED / RETRY / DLQ
 
   // ===============================
   // Kafka / Queue metadata
@@ -33,6 +33,6 @@ message RttmTradeEvent {
   // ===============================
   // Timing & context
   // ===============================
-  int64 event_time = 12;     // epoch millis
+  int64 event_time = 12; // epoch millis
   string message = 13;
 }

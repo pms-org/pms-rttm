@@ -25,8 +25,7 @@ public class StageLatencyComputationService {
             EventStage.RECEIVED,
             EventStage.VALIDATED,
             EventStage.ENRICHED,
-            EventStage.COMMITTED,
-            EventStage.ANALYZED);
+            EventStage.COMMITTED);
 
     @Transactional
     public int computeAndSaveLatencies(UUID tradeId) {

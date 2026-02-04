@@ -40,8 +40,7 @@ public class AlertTestProducer {
             { "RECEIVED", "TRADE_RECEIVED", "Trade received", "pms-trade-capture", "cg-ingest", "trades.raw" },
             { "VALIDATED", "TRADE_VALIDATED", "Trade validated", "pms-validation", "cg-validate", "trades.validated" },
             { "ENRICHED", "TRADE_ENRICHED", "Trade enriched", "pms-transactional", "cg-enrich", "trades.enriched" },
-            { "COMMITTED", "TRADE_COMMITTED", "Trade committed", "pms-transactional", "cg-commit", "trades.committed" },
-            { "ANALYZED", "TRADE_ANALYZED", "Trade analyzed", "pms-analytics", "cg-analyze", "trades.analyzed" }
+            { "COMMITTED", "TRADE_COMMITTED", "Trade committed", "pms-transactional", "cg-commit", "trades.committed" }
     };
 
     public static void main(String[] args) throws Exception {

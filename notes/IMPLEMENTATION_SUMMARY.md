@@ -11,7 +11,7 @@ Computes latencies between consecutive pipeline stages for each trade.
 **How it works:**
 - Triggered automatically after each batch of trade events is saved
 - For each unique trade ID, fetches all events ordered by time
-- Calculates time difference between consecutive stages (RECEIVED → VALIDATED → ENRICHED → COMMITTED → ANALYZED)
+- Calculates time difference between consecutive stages (RECEIVED → VALIDATED → ENRICHED → COMMITTED)
 - Saves latency records to `rttm_stage_latency` table
 
 **Key methods:**

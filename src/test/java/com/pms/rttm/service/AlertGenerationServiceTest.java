@@ -70,7 +70,6 @@ class AlertGenerationServiceTest {
         when(stageLatencyRepository.avgLatency(eq(EventStage.RECEIVED), any(), any())).thenReturn(0L);
         when(stageLatencyRepository.avgLatency(eq(EventStage.VALIDATED), any(), any())).thenReturn(0L);
         when(stageLatencyRepository.avgLatency(eq(EventStage.COMMITTED), any(), any())).thenReturn(0L);
-        when(stageLatencyRepository.avgLatency(eq(EventStage.ANALYZED), any(), any())).thenReturn(0L);
         when(errorEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(dlqEventRepository.countByEventTimeAfter(any())).thenReturn(0L);
         when(queueMetricRepository.findMaxQueueDepthSince(any())).thenReturn(0L);

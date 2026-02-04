@@ -4,7 +4,7 @@ CREATE TABLE rttm_trade_events (
     trade_id        VARCHAR(64) NOT NULL,
     service_name    VARCHAR(64) NOT NULL,
     event_type      VARCHAR(64) NOT NULL,
-    event_stage      VARCHAR(64) NOT NULL,   -- Stage of trade: enum RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
+    event_stage      VARCHAR(64) NOT NULL,   -- Stage of trade: enum RECEIVED / VALIDATED / ENRICHED / COMMITTED
     event_status    VARCHAR(32) NOT NULL,
     source_queue    VARCHAR(128),
     target_queue    VARCHAR(128),

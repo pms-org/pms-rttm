@@ -17,10 +17,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3000, '2026-01-09 04:07:09', 'Trade enriched'),
 
 ('a2c04c8f-aa0b-4f6d-bd56-f103f612fcc1', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4000, '2026-01-09 04:08:09', 'Trade committed'),
-
-('a2c04c8f-aa0b-4f6d-bd56-f103f612fcc1', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5000, '2026-01-09 04:09:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4000, '2026-01-09 04:08:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -37,10 +34,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3001, '2026-01-09 04:08:09', 'Trade enriched'),
 
 ('2437b8ca-5d13-428d-b6ea-85fa5647d86e', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4001, '2026-01-09 04:09:09', 'Trade committed'),
-
-('2437b8ca-5d13-428d-b6ea-85fa5647d86e', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5001, '2026-01-09 04:10:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4001, '2026-01-09 04:09:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -57,10 +51,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3002, '2026-01-09 04:09:09', 'Trade enriched'),
 
 ('a5ffcea6-31c6-4c10-977d-aa4965d82902', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4002, '2026-01-09 04:10:09', 'Trade committed'),
-
-('a5ffcea6-31c6-4c10-977d-aa4965d82902', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5002, '2026-01-09 04:11:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4002, '2026-01-09 04:10:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -77,10 +68,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3003, '2026-01-09 04:10:09', 'Trade enriched'),
 
 ('4a4b1542-d438-4d7d-86d3-8119f25566d2', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4003, '2026-01-09 04:11:09', 'Trade committed'),
-
-('4a4b1542-d438-4d7d-86d3-8119f25566d2', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5003, '2026-01-09 04:12:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4003, '2026-01-09 04:11:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -97,10 +85,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3004, '2026-01-09 04:11:09', 'Trade enriched'),
 
 ('2b871eed-c638-436b-8d17-8f98bd64b1ec', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4004, '2026-01-09 04:12:09', 'Trade committed'),
-
-('2b871eed-c638-436b-8d17-8f98bd64b1ec', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5004, '2026-01-09 04:13:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4004, '2026-01-09 04:12:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -117,10 +102,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3005, '2026-01-09 04:12:09', 'Trade enriched'),
 
 ('2e68899f-7b7c-4284-8195-4b2531491d94', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4005, '2026-01-09 04:13:09', 'Trade committed'),
-
-('2e68899f-7b7c-4284-8195-4b2531491d94', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5005, '2026-01-09 04:14:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4005, '2026-01-09 04:13:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -137,10 +119,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3006, '2026-01-09 04:13:09', 'Trade enriched'),
 
 ('9054be3a-2912-4360-808f-6421a44500a6', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4006, '2026-01-09 04:14:09', 'Trade committed'),
-
-('9054be3a-2912-4360-808f-6421a44500a6', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5006, '2026-01-09 04:15:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4006, '2026-01-09 04:14:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -157,10 +136,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3007, '2026-01-09 04:14:09', 'Trade enriched'),
 
 ('4970a661-8d82-449a-8aa2-4a39f18786ae', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4007, '2026-01-09 04:15:09', 'Trade committed'),
-
-('4970a661-8d82-449a-8aa2-4a39f18786ae', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5007, '2026-01-09 04:16:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4007, '2026-01-09 04:15:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -177,10 +153,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3008, '2026-01-09 04:15:09', 'Trade enriched'),
 
 ('3722ed60-07a8-4f64-b9c0-faf2d00ef194', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4008, '2026-01-09 04:16:09', 'Trade committed'),
-
-('3722ed60-07a8-4f64-b9c0-faf2d00ef194', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5008, '2026-01-09 04:17:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4008, '2026-01-09 04:16:09', 'Trade committed');
 
 
 INSERT INTO rttm_trade_events
@@ -197,10 +170,7 @@ VALUES
  'trade.enrich', 'trade.commit', 'trades.enriched', 'cg-enrich', 2, 3009, '2026-01-09 04:16:09', 'Trade enriched'),
 
 ('e75447ad-0a05-4c79-b54c-25d5d94d115b', 'trade-committer', 'TRADE_COMMITTED', 'COMMITTED', 'SUCCESS',
- 'trade.commit', 'trade.analyze', 'trades.committed', 'cg-commit', 3, 4009, '2026-01-09 04:17:09', 'Trade committed'),
-
-('e75447ad-0a05-4c79-b54c-25d5d94d115b', 'trade-analyzer', 'TRADE_ANALYZED', 'ANALYZED', 'SUCCESS',
- 'trade.analyze', 'none', 'trades.analyzed', 'cg-analyze', 4, 5009, '2026-01-09 04:18:09', 'Trade analyzed');
+ 'trade.commit', 'trade.complete', 'trades.committed', 'cg-commit', 3, 4009, '2026-01-09 04:17:09', 'Trade committed');
 
 
 -- rttm_queue_metrics
@@ -282,9 +252,6 @@ VALUES
 
 ('2b871eed-c638-436b-8d17-8f98bd64b1ec', 'trade-committer', 'TECHNICAL',
  'Deadlock detected while persisting trade', 'COMMITTED', '2026-01-09 04:26:40'),
-
-('2e68899f-7b7c-4284-8195-4b2531491d94', 'trade-analyzer', 'TECHNICAL',
- 'Analytics service unavailable', 'ANALYZED', '2026-01-09 04:27:50'),
 
 ('9054be3a-2912-4360-808f-6421a44500a6', 'trade-enricher', 'BUSINESS',
  'Unsupported product type for enrichment', 'ENRICHED', '2026-01-09 04:29:10');

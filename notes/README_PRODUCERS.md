@@ -12,12 +12,12 @@ Three producer tools for testing RTTM latency computation and alert generation:
 
 ## 1. TradeProducer
 
-Sends complete trade lifecycle events (RECEIVED → VALIDATED → ENRICHED → COMMITTED → ANALYZED) with realistic stage latencies.
+Sends complete trade lifecycle events (RECEIVED → VALIDATED → ENRICHED → COMMITTED) with realistic stage latencies.
 
 ### Features
 - Uses valid portfolio IDs from validation service
 - Uses valid stock symbols (AAPL, MSFT, GOOGL, AMZN, META, NVDA, NFLX, AMD, INTC, IBM, ORCL, BAC, JPM, WMT)
-- Sends all 5 stages for each trade
+- Sends all 4 stages for each trade
 - Stage latencies: 50-300ms (will trigger latency alerts with current thresholds)
 - Perfect for testing stage latency computation
 
@@ -41,19 +41,18 @@ mvn compile exec:java -Dexec.mainClass=com.pms.rttm.tools.TradeProducer -Dexec.a
 ### Expected Output
 
 ```
-Sending 5 complete trade lifecycles (each with 5 stages)...
+Sending 5 complete trade lifecycles (each with 4 stages)...
 
 Trade #1: a7b3c4d5 (Portfolio: b23d70cf, Stock: AAPL)
   ✓ RECEIVED (latency: 82ms) => offset=1000
   ✓ VALIDATED (latency: 143ms) => offset=1001
   ✓ ENRICHED (latency: 210ms) => offset=1002
   ✓ COMMITTED (latency: 95ms) => offset=1003
-  ✓ ANALYZED (latency: 167ms) => offset=1004
 
 Trade #2: e8f9a0b1 (Portfolio: 7839ee86, Stock: MSFT)
   ...
 
-✅ Sent 5 trades × 5 stages = 25 total events
+✅ Sent 5 trades × 4 stages = 20 total events
 ```
 
 ### What Gets Tested

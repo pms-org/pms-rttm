@@ -5,7 +5,7 @@ The `StageLatencyComputationService` computes latencies between consecutive pipe
 
 ## Workflow for Partial Pipeline Example
 
-**Scenario:** Trade receives events for RECEIVED → VALIDATED → ENRICHED (but not COMMITTED or ANALYZED)
+**Scenario:** Trade receives events for RECEIVED → VALIDATED → ENRICHED (but not COMMITTED)
 
 ### 1. Fetch and Prepare Events
 ```java
@@ -21,13 +21,12 @@ Map<EventStage, RttmTradeEventEntity> stageMap = {
     VALIDATED → event2,
     ENRICHED → event3
     // COMMITTED → null (not present)
-    // ANALYZED → null (not present)
 }
 ```
 
 ### 3. Loop Through Consecutive Stage Pairs
 ```java
-for (int i = 0; i < STAGE_ORDER.size() - 1; i++) // i goes 0, 1, 2, 3
+for (int i = 0; i < STAGE_ORDER.size() - 1; i++) // i goes 0, 1, 2
 ```
 
 | i | currentStage | nextStage | currentEvent | nextEvent | Latency Computed? |
@@ -35,7 +34,6 @@ for (int i = 0; i < STAGE_ORDER.size() - 1; i++) // i goes 0, 1, 2, 3
 | 0 | RECEIVED | VALIDATED | ✓ exists | ✓ exists | **YES** - computes latency |
 | 1 | VALIDATED | ENRICHED | ✓ exists | ✓ exists | **YES** - computes latency |
 | 2 | ENRICHED | COMMITTED | ✓ exists | ❌ null | **NO** - skipped (both must exist) |
-| 3 | COMMITTED | ANALYZED | ❌ null | ❌ null | **NO** - skipped |
 
 ### 4. Result
 Creates 2 latency records:
@@ -61,7 +59,7 @@ The `if (currentEvent != null && nextEvent != null)` check means:
 | RECEIVED, VALIDATED | 1 (RECEIVED→VALIDATED) |
 | RECEIVED, VALIDATED, ENRICHED | 2 (RECEIVED→VALIDATED, VALIDATED→ENRICHED) |
 | RECEIVED, ENRICHED (gap) | 0 (not consecutive) |
-| All 5 stages | 4 (all consecutive pairs) |
+| All 4 stages | 3 (all consecutive pairs) |
 
 ### Warning Condition
 ```java

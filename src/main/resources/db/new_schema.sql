@@ -6,7 +6,7 @@ CREATE TABLE rttm_trade_events (
     trade_id        UUID NOT NULL,               -- Unique trade identifier across entire pipeline
     service_name    VARCHAR(128) NOT NULL,        -- Name of the microservice emitting the event
     event_type      VARCHAR(128) NOT NULL,        -- Technical event (RECEIVED, CONSUMED, PRODUCED, FAILED, ACKED)
-    event_stage     VARCHAR(128) NOT NULL,        -- Business stage: RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
+    event_stage     VARCHAR(128) NOT NULL,        -- Business stage: RECEIVED / VALIDATED / ENRICHED / COMMITTED
     event_status    VARCHAR(64) NOT NULL,        -- SUCCESS / FAILED / RETRY / DLQ
     source_queue    VARCHAR(256),                -- Source queue/topic (RabbitMQ or Kafka)
     target_queue    VARCHAR(256),                -- Target queue/topic after processing
@@ -129,7 +129,7 @@ CREATE TABLE rttm_stage_latency (
     id            BIGSERIAL PRIMARY KEY,
     trade_id      UUID NOT NULL,                 -- Trade identifier
     service_name  VARCHAR(128) NOT NULL,          -- Service processing this stage
-    stage_name    VARCHAR(128) NOT NULL,          -- RECEIVED / VALIDATED / ENRICHED / COMMITTED / ANALYZED
+    stage_name    VARCHAR(128) NOT NULL,          -- RECEIVED / VALIDATED / ENRICHED / COMMITTED
     latency_ms    BIGINT NOT NULL,               -- Processing latency in milliseconds
     event_time    TIMESTAMP NOT NULL,             -- Time when latency was recorded
     created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- Record creation time

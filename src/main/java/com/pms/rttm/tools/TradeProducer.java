@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 
 /**
  * Enhanced producer that sends complete trade lifecycle events (RECEIVED →
- * VALIDATED → ENRICHED → COMMITTED → ANALYZED)
+ * VALIDATED → ENRICHED → COMMITTED)
  * for testing stage latency computation and alert generation.
  * 
  * Usage:
@@ -53,9 +53,7 @@ public class TradeProducer {
                                         "trade.enrich",
                                         "trade.commit", "trades.enriched" },
                         { "COMMITTED", "TRADE_COMMITTED", "Trade committed", "pms-transactional", "cg-commit",
-                                        "trade.commit", "trade.analyze", "trades.committed" },
-                        { "ANALYZED", "TRADE_ANALYZED", "Trade analyzed", "pms-analytics", "cg-analyze",
-                                        "trade.analyze", "trade.complete", "trades.analyzed" }
+                                        "trade.commit", "trade.complete", "trades.committed" }
         };
 
         public static void main(String[] args) throws Exception {
