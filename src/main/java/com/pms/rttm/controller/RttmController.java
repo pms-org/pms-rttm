@@ -21,7 +21,6 @@ import com.pms.rttm.dto.PipelineStageMetrics;
 import com.pms.rttm.enums.EventStage;
 import com.pms.rttm.service.DlqMetricsService;
 import com.pms.rttm.service.InvalidTradeMetricsService;
-import com.pms.rttm.service.KafkaLagService;
 import com.pms.rttm.service.LatencyMetricsService;
 import com.pms.rttm.service.PipelineDepthService;
 import com.pms.rttm.service.TpsMetricsService;

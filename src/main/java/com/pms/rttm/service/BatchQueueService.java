@@ -18,6 +18,7 @@ import com.pms.rttm.proto.RttmTradeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -106,6 +107,17 @@ public class BatchQueueService {
                 if (!tradeIds.isEmpty()) {
                     latencyService.computeAndSaveLatenciesBatch(tradeIds);
                 }
+            } catch (DataIntegrityViolationException ex) {
+                log.error(
+                        "Data integrity violation in trade batch - value too long or constraint violation. Discarding {} items to continue service execution. Error: {}",
+                        entities.size(), ex.getMessage());
+                // Log sample of problematic data for debugging
+                if (!entities.isEmpty()) {
+                    log.error("Sample problematic trade event: tradeId={}, serviceName={}, eventType={}, eventStage={}",
+                            entities.get(0).getTradeId(), entities.get(0).getServiceName(),
+                            entities.get(0).getEventType(), entities.get(0).getEventStage());
+                }
+                // Discard batch - don't requeue to prevent infinite loop
             } catch (Exception ex) {
                 log.error("Trade batch save failed, re-queueing {} items", entities.size(), ex);
                 for (RttmTradeEvent r : items) {
@@ -146,6 +158,14 @@ public class BatchQueueService {
             try {
                 ingestService.ingestBatchErrors(entities);
                 log.info("Saved error batch of {}", entities.size());
+            } catch (DataIntegrityViolationException ex) {
+                log.error("Data integrity violation in error batch - discarding {} items. Error: {}",
+                        entities.size(), ex.getMessage());
+                if (!entities.isEmpty()) {
+                    log.error("Sample problematic error event: tradeId={}, serviceName={}, errorType={}",
+                            entities.get(0).getTradeId(), entities.get(0).getServiceName(),
+                            entities.get(0).getErrorType());
+                }
             } catch (Exception ex) {
                 log.error("DB save failed for error batch, re-queueing {} items", entities.size(), ex);
                 for (RttmErrorEvent r : items) {
@@ -197,6 +217,13 @@ public class BatchQueueService {
             try {
                 ingestService.ingestBatchQueueMetrics(entitiesToStore);
                 log.info("Saved {} queue metrics (filtered from {})", entitiesToStore.size(), items.size());
+            } catch (DataIntegrityViolationException ex) {
+                log.error("Data integrity violation in queue metric batch - discarding {} items. Error: {}",
+                        entitiesToStore.size(), ex.getMessage());
+                if (!entitiesToStore.isEmpty()) {
+                    log.error("Sample problematic metric: serviceName={}, topicName={}",
+                            entitiesToStore.get(0).getServiceName(), entitiesToStore.get(0).getTopicName());
+                }
             } catch (Exception ex) {
                 log.error("DB save failed for queue-metric batch, re-queueing {} items", entitiesToStore.size(), ex);
                 for (RttmQueueMetric r : items) {
@@ -237,6 +264,14 @@ public class BatchQueueService {
             try {
                 ingestService.ingestBatchDlqEvents(entities);
                 log.info("Saved dlq batch of {}", entities.size());
+            } catch (DataIntegrityViolationException ex) {
+                log.error("Data integrity violation in DLQ batch - discarding {} items. Error: {}",
+                        entities.size(), ex.getMessage());
+                if (!entities.isEmpty()) {
+                    log.error("Sample problematic DLQ event: tradeId={}, serviceName={}, topicName={}",
+                            entities.get(0).getTradeId(), entities.get(0).getServiceName(),
+                            entities.get(0).getTopicName());
+                }
             } catch (Exception ex) {
                 log.error("DB save failed for dlq batch, re-queueing {} items", entities.size(), ex);
                 for (RttmDlqEvent r : items) {
@@ -277,6 +312,13 @@ public class BatchQueueService {
             try {
                 ingestService.ingestBatchInvalidTrades(entities);
                 log.info("Saved invalid trade batch of {}", entities.size());
+            } catch (DataIntegrityViolationException ex) {
+                log.error("Data integrity violation in invalid trade batch - discarding {} items. Error: {}",
+                        entities.size(), ex.getMessage());
+                if (!entities.isEmpty()) {
+                    log.error("Sample problematic invalid trade: tradeId={}, validationErrors={}",
+                            entities.get(0).getTradeId(), entities.get(0).getValidationErrors());
+                }
             } catch (Exception ex) {
                 log.error("DB save failed for invalid trade batch, re-queueing {} items", entities.size(), ex);
                 for (InvalidTradeEventProto r : items) {
