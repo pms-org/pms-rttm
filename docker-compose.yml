@@ -90,22 +90,119 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
 
-
-  redis:
-    image: redis:7-alpine
-    hostname: redis
-    container_name: redis
+  redis-master:
+    image: redis:7.4
+    container_name: redis-master
+    hostname: redis-master
+    command: redis-server /redis/redis-master.conf
+    volumes:
+      - ./redis:/redis
+      - redis-master-data:/data
     ports:
       - "6379:6379"
-    volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  redis-replica-1:
+    image: redis:7.4
+    container_name: redis-replica-1
+    hostname: redis-replica-1
+    command: redis-server /redis/redis-replica.conf
+    volumes:
+      - ./redis:/redis
+      - redis-replica-1-data:/data
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-replica-2:
+    image: redis:7.4
+    container_name: redis-replica-2
+    hostname: redis-replica-2
+    command: redis-server /redis/redis-replica.conf
+    volumes:
+      - ./redis:/redis
+      - redis-replica-2-data:/data
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sentinel-1:
+    image: redis:7.4
+    container_name: sentinel-1
+    hostname: sentinel-1
+    command: redis-sentinel /redis/sentinel-1.conf
+    volumes:
+      - ./redis:/redis
+      - sentinel-1-data:/data
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    ports:
+      - "26379:26379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sentinel-2:
+    image: redis:7.4
+    container_name: sentinel-2
+    hostname: sentinel-2
+    command: redis-sentinel /redis/sentinel-2.conf
+    volumes:
+      - ./redis:/redis
+      - sentinel-2-data:/data
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    ports:
+      - "26380:26379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  sentinel-3:
+    image: redis:7.4
+    container_name: sentinel-3
+    hostname: sentinel-3
+    command: redis-sentinel /redis/sentinel-3.conf
+    volumes:
+      - ./redis:/redis
+      - sentinel-3-data:/data
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    ports:
+      - "26381:26379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
       retries: 5
       
 volumes:
   kafka-data:
-  redis-data:
+  redis-master-data:
+  redis-replica-1-data:
+  redis-replica-2-data:
+  sentinel-1-data:
+  sentinel-2-data:
+  sentinel-3-data:

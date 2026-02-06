@@ -10,39 +10,65 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.util.StringUtils;
+
+import java.time.Duration;
 
 /**
- * Redis configuration for queue metrics aggregation cache.
+ * Redis Sentinel configuration for queue metrics aggregation cache.
  * Shared across all K8s pods for consistent aggregation decisions.
+ * Provides high availability with automatic failover.
  */
 @Configuration
 public class RedisConfig {
 
-    @Value("${spring.data.redis.host:localhost}")
-    private String redisHost;
+    @Value("${spring.data.redis.sentinel.master}")
+    private String sentinelMaster;
 
-    @Value("${spring.data.redis.port:6379}")
-    private int redisPort;
+    @Value("${spring.data.redis.sentinel.nodes}")
+    private String sentinelNodes;
 
-    @Value("${spring.data.redis.password:#{null}}")
+    @Value("${spring.data.redis.timeout}")
+    private Duration redisTimeout;
+
+    @Value("${spring.data.redis.password:}")
     private String redisPassword;
+
+    @Value("${spring.data.redis.sentinel.password:}")
+    private String sentinelPassword;
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(redisHost);
-        config.setPort(redisPort);
+        RedisSentinelConfiguration sentinelConfig = new RedisSentinelConfiguration();
+        sentinelConfig.master(sentinelMaster);
 
-        if (redisPassword != null && !redisPassword.isEmpty()) {
-            config.setPassword(redisPassword);
+        // Parse sentinel nodes
+        String[] nodes = sentinelNodes.split(",");
+        for (String node : nodes) {
+            String[] parts = node.trim().split(":");
+            if (parts.length == 2) {
+                sentinelConfig.sentinel(new RedisNode(parts[0], Integer.parseInt(parts[1])));
+            }
         }
 
-        return new LettuceConnectionFactory(config);
+        // Set passwords if provided
+        if (StringUtils.hasText(redisPassword)) {
+            sentinelConfig.setPassword(redisPassword);
+        }
+
+        if (StringUtils.hasText(sentinelPassword)) {
+            sentinelConfig.setSentinelPassword(sentinelPassword);
+        }
+
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(sentinelConfig);
+        factory.setTimeout(redisTimeout.toMillis());
+        return factory;
     }
 
     @Bean

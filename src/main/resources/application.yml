@@ -10,13 +10,14 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      timeout: ${REDIS_TIMEOUT:2s}
       password: ${REDIS_PASSWORD:}
-      timeout: ${REDIS_TIMEOUT:2000ms}
-      # sentinel:
-      #   master: ${REDIS_SENTINEL_MASTER:}
-      #   nodes: ${REDIS_SENTINEL_HOST:}:${REDIS_SENTINEL_PORT:26379}
+      
+      # Redis Sentinel configuration
+      sentinel:
+        master: ${REDIS_SENTINEL_MASTER:mymaster}
+        nodes: ${REDIS_SENTINEL_NODES:sentinel-1:26379,sentinel-2:26379,sentinel-3:26379}
+        password: ${REDIS_SENTINEL_PASSWORD:}
   cache:
     type: ${CACHE_TYPE:redis}
 
