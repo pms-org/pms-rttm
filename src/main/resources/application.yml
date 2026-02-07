@@ -35,13 +35,13 @@ spring:
         format_sql: ${DB_FORMAT_SQL:true}
         dialect: ${DB_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     consumer:
-      group-id: ${KAFKA_CONSUMER_GROUP_ID}
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:rttm-group}
 
 schema:
   registry:
-    url: ${SCHEMA_REGISTRY_URL}
+    url: ${SCHEMA_REGISTRY_URL:http://schema-registry:8081}
 
 server:
   port: ${SERVER_PORT:8087}  
