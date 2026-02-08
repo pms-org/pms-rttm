@@ -20,18 +20,18 @@ Then Current TPS = 5 tx/s
 
 ### 2. Peak TPS
 
-**Logic:** Find the maximum number of trades that occurred in any single second within the last 24 hours that reached RECEIVED stage.
+**Logic:** Find the maximum number of trades that occurred in any single second within the last 5 minutes that reached RECEIVED stage.
 
-The system groups all trades of RECEIVED stage from the last 24 hours by second, counts how many trades occurred in each second, and returns the highest count.
+The system groups all trades of RECEIVED stage from the last 5 minutes by second, counts how many trades occurred in each second, and returns the highest count.
 
 **Example:**
 ```
-Last 24h data by second:
+Last 5 minutes data by second:
 - 10:00:00 → 10 trades
 - 10:00:01 → 50 trades  ← Peak
 - 10:00:02 → 30 trades
 - 10:00:03 → 25 trades
-... (rest of the day)
+... (rest of the 5-minute window)
 
 Peak TPS = 50 tx/s
 ```

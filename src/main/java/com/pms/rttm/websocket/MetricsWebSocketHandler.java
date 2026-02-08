@@ -92,8 +92,8 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
         try {
             long currentTps = tpsService.currentTps();
 
-            // Peak TPS (last 24 hours)
-            long peakTps = tpsService.peakTps(Duration.ofHours(24));
+            // Peak TPS (last 5 minutes)
+            long peakTps = tpsService.peakTps(Duration.ofMinutes(5));
 
             long sum = 0;
             int cnt = 0;
