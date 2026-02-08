@@ -20,11 +20,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 
-/**
- * Redis Sentinel configuration for queue metrics aggregation cache.
- * Shared across all K8s pods for consistent aggregation decisions.
- * Provides high availability with automatic failover.
- */
+
 @Configuration
 public class RedisConfig {
 

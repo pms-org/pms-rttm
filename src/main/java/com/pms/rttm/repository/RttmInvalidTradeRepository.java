@@ -12,9 +12,7 @@ import java.time.Instant;
 @Repository
 public interface RttmInvalidTradeRepository extends JpaRepository<RttmInvalidTradeEntity, Long> {
 
-    /**
-     * Get total invalid trades count for last 24 hours.
-     */
+    // Get total invalid trades count for last 24 hours
     @Query("""
                 SELECT COUNT(i)
                 FROM RttmInvalidTradeEntity i
@@ -22,8 +20,6 @@ public interface RttmInvalidTradeRepository extends JpaRepository<RttmInvalidTra
             """)
     long countSince(@Param("since") Instant since);
 
-    /**
-     * Get total invalid trades count (all-time).
-     */
+    // Get total invalid trades count (all-time)
     long count();
 }

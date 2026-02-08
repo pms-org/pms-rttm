@@ -10,16 +10,13 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Future;
 
-/**
- * Enhanced producer that sends complete trade lifecycle events (RECEIVED →
- * VALIDATED → ENRICHED → COMMITTED)
+/*
+ * Enhanced producer that sends complete trade lifecycle events (RECEIVED → VALIDATED → ENRICHED → COMMITTED)
  * for testing stage latency computation and alert generation.
- * 
  * Usage:
  * set KAFKA_BOOTSTRAP=localhost:9092
  * set SCHEMA_REGISTRY_URL=http://localhost:8081
- * mvn compile exec:java -Dexec.mainClass=com.pms.rttm.tools.TradeProducer
- * -Dexec.args="5"
+ * mvn compile exec:java -Dexec.mainClass=com.pms.rttm.tools.TradeProducer -Dexec.args="5"
  */
 public class TradeProducer {
 

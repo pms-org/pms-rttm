@@ -19,17 +19,13 @@ public class DlqMetricsService {
     // Last 24 hours window in seconds
     private static final Long WINDOW_24_HOURS = 86400L;
 
-    /**
-     * Get total DLQ count for last 24 hours.
-     */
+    // Get total DLQ count for last 24 hours
     public long totalDlq() {
         Instant since = Instant.now().minusSeconds(WINDOW_24_HOURS);
         return dlqRepo.countByEventTimeAfter(since);
     }
 
-    /**
-     * Get DLQ count by stage for last 24 hours.
-     */
+    // Get DLQ count by stage for last 24 hours
     public Map<EventStage, Long> dlqByStage() {
         Instant since = Instant.now().minusSeconds(WINDOW_24_HOURS);
         return dlqRepo.countGroupedByStageSince(since);

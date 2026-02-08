@@ -26,7 +26,7 @@ public class RttmIngestService {
         tradeEventRepository.save(entity);
     }
 
-    /** Batch save for trade events */
+    // Batch save for trade events
     public void ingestBatch(Iterable<RttmTradeEventEntity> entities) {
         tradeEventRepository.saveAll(entities);
     }
@@ -35,7 +35,7 @@ public class RttmIngestService {
         queueMetricRepository.save(entity);
     }
 
-    /** Batch save for queue metrics */
+    // Batch save for queue metrics
     public void ingestBatchQueueMetrics(Iterable<RttmQueueMetricEntity> entities) {
         queueMetricRepository.saveAll(entities);
     }
@@ -44,7 +44,7 @@ public class RttmIngestService {
         dlqEventRepository.save(entity);
     }
 
-    /** Batch save for DLQ events */
+    // Batch save for DLQ events
     public void ingestBatchDlqEvents(Iterable<RttmDlqEventEntity> entities) {
         dlqEventRepository.saveAll(entities);
     }
@@ -53,7 +53,7 @@ public class RttmIngestService {
         errorEventRepository.save(entity);
     }
 
-    /** Batch save for error events */
+    // Batch save for error events
     public void ingestBatchErrors(Iterable<RttmErrorEventEntity> entities) {
         errorEventRepository.saveAll(entities);
     }
@@ -62,7 +62,7 @@ public class RttmIngestService {
         stageLatencyRepository.save(entity);
     }
 
-    /** Batch save for stage latencies */
+    // Batch save for stage latencies
     public void ingestBatchStageLatencies(Iterable<RttmStageLatencyEntity> entities) {
         stageLatencyRepository.saveAll(entities);
     }
@@ -71,7 +71,7 @@ public class RttmIngestService {
         alertRepository.save(entity);
     }
 
-    /** Batch save for alerts */
+    // Batch save for alerts
     public void ingestBatchAlerts(Iterable<RttmAlertEntity> entities) {
         alertRepository.saveAll(entities);
     }
@@ -80,7 +80,7 @@ public class RttmIngestService {
         invalidTradeRepository.save(entity);
     }
 
-    /** Batch save for invalid trades */
+    // Batch save for invalid trades
     public void ingestBatchInvalidTrades(Iterable<RttmInvalidTradeEntity> entities) {
         invalidTradeRepository.saveAll(entities);
     }

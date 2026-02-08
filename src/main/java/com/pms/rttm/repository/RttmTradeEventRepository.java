@@ -96,6 +96,18 @@ public interface RttmTradeEventRepository extends JpaRepository<RttmTradeEventEn
             """, nativeQuery = true)
     long findPeakTps(@Param("window") long windowInSeconds);
 
+    @Query(value = """
+                SELECT COALESCE(MAX(tps), 0)
+                FROM (
+                    SELECT COUNT(*) AS tps
+                    FROM rttm_trade_events
+                    WHERE event_time >= NOW() - (:window || ' seconds')::INTERVAL
+                      AND event_stage = 'RECEIVED'
+                    GROUP BY date_trunc('second', event_time)
+                ) t
+            """, nativeQuery = true)
+    long findPeakTpsForReceived(@Param("window") long windowInSeconds);
+
     // @Query("""
     // select new com.pms.rttm.dto.TradeTrackingDto(
     // e.id,

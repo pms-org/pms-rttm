@@ -10,17 +10,15 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Future;
 
-/**
+/*
  * High-volume producer to trigger alert conditions:
  * - High TPS (triggers TPS alerts)
  * - High latency trades (triggers latency alerts)
  * - Fast burst sends to test queue depth alerts
- * 
  * Usage:
  * set KAFKA_BOOTSTRAP=localhost:9092
  * set SCHEMA_REGISTRY_URL=http://localhost:8081
- * mvn compile exec:java -Dexec.mainClass=com.pms.rttm.tools.AlertTestProducer
- * -Dexec.args="100"
+ * mvn compile exec:java -Dexec.mainClass=com.pms.rttm.tools.AlertTestProducer -Dexec.args="100"
  */
 public class AlertTestProducer {
 

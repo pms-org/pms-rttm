@@ -48,10 +48,8 @@ public interface RttmQueueMetricRepository
 			""")
 	List<Object[]> lagByTopicPartitionRaw();
 
-	/**
-	 * Current lag per partition (aggregated across topics if needed) Latest
-	 * snapshot only
-	 */
+	// Current lag per partition (aggregated across topics if needed) Latest
+	// snapshot only
 	@Query("""
 				SELECT q.partitionId,
 					   (q.producedOffset - q.consumedOffset)
@@ -78,9 +76,7 @@ public interface RttmQueueMetricRepository
 
 	// ================= LAST 24 HOURS AVERAGE LAG =================
 
-	/**
-	 * Average total lag across all partitions for last 24 hours.
-	 */
+	// Average total lag across all partitions for last 24 hours
 	@Query("""
 				SELECT COALESCE(AVG(q.producedOffset - q.consumedOffset), 0)
 				FROM RttmQueueMetricEntity q
@@ -88,9 +84,7 @@ public interface RttmQueueMetricRepository
 			""")
 	long avgTotalLagSince(@Param("since") Instant since);
 
-	/**
-	 * Average lag per partition for last 24 hours.
-	 */
+	// Average lag per partition for last 24 hours
 	@Query("""
 				SELECT q.partitionId,
 					   AVG(q.producedOffset - q.consumedOffset)
@@ -116,7 +110,7 @@ public interface RttmQueueMetricRepository
 			""")
 	Long findMaxQueueDepthSince(@Param("since") Instant since);
 
-	/**
+	/*
 	 * Delete old queue metrics beyond retention window.
 	 * Used by cleanup service to prevent database bloat.
 	 */

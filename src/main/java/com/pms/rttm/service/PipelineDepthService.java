@@ -26,25 +26,38 @@ public class PipelineDepthService {
 
         private final RttmTradeEventRepository tradeRepo;
         private final RttmStageLatencyRepository latencyRepo;
-        private final RttmErrorEventRepository errorRepo;
-        private final RttmDlqEventRepository dlqRepo;
 
         public PipelineStageMetrics stageMetrics(EventStage stage) {
 
                 // Use last 24 hours for all metrics
                 Instant since = Instant.now().minusSeconds(WINDOW_24_HOURS);
 
-                long total = tradeRepo.countByStageSince(stage, since);
-                long errors = errorRepo.countByStageSince(stage, since);
-                long dlq = dlqRepo.countGroupedByStageSince(since)
-                                .getOrDefault(stage, 0L);
+                long currentCount = tradeRepo.countByStageSince(stage, since);
 
-                double success = total == 0 ? 100.0 : ((double) (total - errors - dlq) / total) * 100;
+                // Calculate success rate as: (current stage count / previous stage count) * 100
+                double success;
+                if (stage == EventStage.RECEIVED) {
+                        // First stage has no previous stage, so success rate doesn't apply
+                        success = 0.0;
+                } else {
+                        EventStage previousStage = getPreviousStage(stage);
+                        long previousCount = tradeRepo.countByStageSince(previousStage, since);
+                        success = previousCount == 0 ? 0.0 : ((double) currentCount / previousCount) * 100;
+                }
 
                 return new PipelineStageMetrics(
-                                total,
+                                currentCount,
                                 latencyRepo.avgLatency(stage, WINDOW_24_HOURS, since),
                                 success);
+        }
+
+        private EventStage getPreviousStage(EventStage stage) {
+                return switch (stage) {
+                        case VALIDATED -> EventStage.RECEIVED;
+                        case ENRICHED -> EventStage.VALIDATED;
+                        case COMMITTED -> EventStage.ENRICHED;
+                        default -> null;
+                };
         }
 
         public Map<EventStage, PipelineStageMetrics> fullPipeline() {

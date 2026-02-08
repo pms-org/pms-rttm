@@ -11,11 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-/**
+/*
  * Scheduled cleanup service for queue metrics.
  * Deletes old metrics beyond the retention window to prevent database bloat.
- * Queue metrics arrive every 30s per service/topic/partition, leading to rapid
- * growth.
+ * Queue metrics arrive every 30s per service/topic/partition, leading to rapid growth.
  */
 @Service
 @RequiredArgsConstructor
@@ -27,7 +26,7 @@ public class QueueMetricCleanupService {
     @Value("${rttm.queue-metrics.retention-hours:48}")
     private int retentionHours;
 
-    /**
+    /*
      * Delete queue metrics older than retention window.
      * Default: Runs daily at 2 AM.
      * Configurable via: rttm.queue-metrics.cleanup-cron
@@ -47,9 +46,7 @@ public class QueueMetricCleanupService {
         }
     }
 
-    /**
-     * Get current retention count for monitoring
-     */
+    // Get current retention count for monitoring
     public long getCurrentMetricCount() {
         return queueMetricRepository.count();
     }

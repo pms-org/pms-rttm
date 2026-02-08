@@ -9,6 +9,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.pms.rttm.dto.TpsBucket;
+import com.pms.rttm.enums.EventStage;
 import com.pms.rttm.repository.RttmTradeEventRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,12 @@ public class TpsMetricsService {
     private final RttmTradeEventRepository tradeRepo;
 
     public long peakTps(Duration window) {
-        return tradeRepo.findPeakTps(window.getSeconds());
+        return tradeRepo.findPeakTpsForReceived(window.getSeconds());
     }
 
     public long currentTps() {
-        return tradeRepo.countByEventTimeAfter(
+        return tradeRepo.countByStageSince(
+                EventStage.RECEIVED,
                 Instant.now().minusSeconds(1));
     }
 

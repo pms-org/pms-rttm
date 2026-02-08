@@ -17,17 +17,13 @@ public class InvalidTradeMetricsService {
     // Last 24 hours window in seconds
     private static final Long WINDOW_24_HOURS = 86400L;
 
-    /**
-     * Get invalid trades count for last 24 hours.
-     */
+    // Get invalid trades count for last 24 hours
     public long invalidTradesCount() {
         Instant since = Instant.now().minusSeconds(WINDOW_24_HOURS);
         return invalidTradeRepo.countSince(since);
     }
 
-    /**
-     * Get invalid trades count (all-time).
-     */
+    // Get invalid trades count (all-time)
     public long invalidTradesCountAllTime() {
         return invalidTradeRepo.count();
     }

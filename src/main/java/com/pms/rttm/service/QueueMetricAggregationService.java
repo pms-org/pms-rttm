@@ -11,15 +11,12 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Redis-based aggregation service to reduce queue metric storage in K8s
- * environments.
+/*
+ * Redis-based aggregation service to reduce queue metric storage in K8s environments.
  * Shared cache across all pods ensures consistent aggregation decisions.
- * 
  * Only stores metrics when:
  * 1. Lag changes significantly (>10% by default)
  * 2. Minimum time interval elapsed (5 minutes by default)
- * 
  * Uses Redis with automatic TTL expiry (24h default) to prevent memory leaks.
  */
 @Service
@@ -40,13 +37,8 @@ public class QueueMetricAggregationService {
     @Value("${rttm.queue-metrics.cache-ttl-hours:24}")
     private int cacheTtlHours;
 
-    /**
-     * Determine if metric should be stored based on aggregation rules.
-     * Uses Redis to share cache across K8s pods.
-     * 
-     * @param newMetric The new metric snapshot to evaluate
-     * @return true if metric should be persisted, false to skip
-     */
+    // Determine if metric should be stored based on aggregation rules
+    // Uses Redis to share cache across K8s pods
     public boolean shouldStore(RttmQueueMetricEntity newMetric) {
         String cacheKey = buildCacheKey(newMetric);
 
@@ -92,9 +84,7 @@ public class QueueMetricAggregationService {
         }
     }
 
-    /**
-     * Check if lag changed beyond threshold
-     */
+    // Check if lag changed beyond threshold
     private boolean hasSignificantLagChange(long previousLag, long currentLag) {
         // If previous lag was 0, any non-zero lag is significant
         if (previousLag == 0) {
@@ -111,9 +101,7 @@ public class QueueMetricAggregationService {
         return change > lagChangeThreshold;
     }
 
-    /**
-     * Build Redis cache key for topic+partition+consumer group
-     */
+    // Build Redis cache key for topic+partition+consumer group
     private String buildCacheKey(RttmQueueMetricEntity metric) {
         return CACHE_KEY_PREFIX +
                 metric.getTopicName() + ":" +
@@ -121,9 +109,7 @@ public class QueueMetricAggregationService {
                 metric.getConsumerGroup();
     }
 
-    /**
-     * Clear all cached metrics from Redis (useful for testing or manual reset)
-     */
+    // Clear all cached metrics from Redis (useful for testing or manual reset)
     public void clearCache() {
         try {
             var keys = redisTemplate.keys(CACHE_KEY_PREFIX + "*");
@@ -136,9 +122,7 @@ public class QueueMetricAggregationService {
         }
     }
 
-    /**
-     * Get current cache size for monitoring
-     */
+    // Get current cache size for monitoring
     public int getCacheSize() {
         try {
             var keys = redisTemplate.keys(CACHE_KEY_PREFIX + "*");
