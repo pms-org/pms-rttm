@@ -111,8 +111,8 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
             long dlqCount = dlqService.totalDlq();
             long invalidTrades = invalidTradeService.invalidTradesCount();
 
-            metrics.add(createMetric("Current TPS", (int) currentTps, "tx/s", getStatus(currentTps, 50)));
-            metrics.add(createMetric("Peak TPS", (int) peakTps, "tx/s", getStatus(peakTps, 100)));
+            metrics.add(createMetric("Current TPS", (int) currentTps, "tx/s", getStatusForTps(currentTps)));
+            metrics.add(createMetric("Peak TPS", (int) peakTps, "tx/s", getStatusForTps(peakTps)));
             metrics.add(createMetric("Avg Latency", (int) avgLatency, "ms", getLatencyStatus(avgLatency)));
             metrics.add(createMetric("DLQ Count", (int) dlqCount, "errors", getDlqStatus(dlqCount)));
             metrics.add(createMetric("Invalid Trades", (int) invalidTrades, "trades",
@@ -133,18 +133,18 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
         return metric;
     }
 
-    private String getStatus(long value, long threshold) {
-        if (value > threshold * 2)
+    private String getStatusForTps(long tps) {
+        if (tps > 100)
             return "critical";
-        if (value > threshold)
+        if (tps > 50)
             return "warning";
         return "healthy";
     }
 
     private String getLatencyStatus(long latency) {
-        if (latency > 500)
+        if (latency > 60000)
             return "critical";
-        if (latency > 200)
+        if (latency > 30000)
             return "warning";
         return "healthy";
     }
@@ -152,15 +152,15 @@ public class MetricsWebSocketHandler extends TextWebSocketHandler {
     private String getDlqStatus(long dlqCount) {
         if (dlqCount > 100)
             return "critical";
-        if (dlqCount > 10)
+        if (dlqCount > 30)
             return "warning";
         return "healthy";
     }
 
     private String getInvalidTradesStatus(long count) {
-        if (count > 50)
+        if (count > 5000)
             return "critical";
-        if (count > 10)
+        if (count > 1000)
             return "warning";
         return "healthy";
     }

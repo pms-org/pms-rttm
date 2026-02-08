@@ -27,7 +27,7 @@ public class TpsMetricsService {
     public long currentTps() {
         return tradeRepo.countByStageSince(
                 EventStage.RECEIVED,
-                Instant.now().minusSeconds(1));
+                Instant.now().minusSeconds(5));
     }
 
     public List<TpsBucket> tpsTrend(Duration window, String bucket) {

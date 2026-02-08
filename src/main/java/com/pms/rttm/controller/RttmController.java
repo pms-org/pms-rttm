@@ -105,39 +105,33 @@ public class RttmController {
 
     // --- simple heuristics for status (could be replaced by config)
     private String healthForTps(long tps) {
-        if (tps <= 0)
+        if (tps > 100)
             return "critical";
-        if (tps < 100)
+        if (tps > 50)
             return "warning";
         return "healthy";
     }
 
     private String healthForLatency(long ms) {
-        if (ms <= 0)
-            return "healthy";
-        if (ms > 200)
+        if (ms > 60000)
             return "critical";
-        if (ms > 100)
+        if (ms > 30000)
             return "warning";
         return "healthy";
     }
 
     private String healthForDlq(long count) {
-        if (count == 0)
-            return "healthy";
         if (count > 100)
             return "critical";
-        if (count > 10)
+        if (count > 30)
             return "warning";
         return "healthy";
     }
 
     private String healthForInvalidTrades(long count) {
-        if (count == 0)
-            return "healthy";
-        if (count > 50)
+        if (count > 5000)
             return "critical";
-        if (count > 10)
+        if (count > 1000)
             return "warning";
         return "healthy";
     }

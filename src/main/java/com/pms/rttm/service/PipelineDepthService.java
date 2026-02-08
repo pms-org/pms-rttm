@@ -42,7 +42,8 @@ public class PipelineDepthService {
                 } else {
                         EventStage previousStage = getPreviousStage(stage);
                         long previousCount = tradeRepo.countByStageSince(previousStage, since);
-                        success = previousCount == 0 ? 0.0 : ((double) currentCount / previousCount) * 100;
+                        double rawSuccess = previousCount == 0 ? 0.0 : ((double) currentCount / previousCount) * 100;
+                        success = Math.round(rawSuccess * 100.0) / 100.0;
                 }
 
                 return new PipelineStageMetrics(
